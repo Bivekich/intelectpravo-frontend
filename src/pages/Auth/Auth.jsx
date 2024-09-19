@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import Input from "../../components/Input";
 import { useNavigate } from "react-router-dom";
-import { Cookies } from "react-cookie";
+import Cookies from "universal-cookie";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ const Auth = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault(); // Отключаем перезагрузку страницы
+    cookies.set("email", profile.email, { path: "/" }); // Set maxAge for cookie expiration
 
     axios({
       method: "post",
@@ -39,7 +40,6 @@ const Auth = () => {
         if (error.response && error.response.status === 404) {
           // Handle 404 error
 
-          cookies.set("email", profile.email, { path: "/" });
           navigate("/singin");
         } else {
           // Handle other errors or network issues

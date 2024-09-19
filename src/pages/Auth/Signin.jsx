@@ -1,7 +1,7 @@
 import Input from "../../components/Input";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Cookies } from "react-cookie";
+import Cookies from "universal-cookie";
 import axios from "axios";
 
 const SingIn = () => {

@@ -1,40 +1,27 @@
 import axios from "axios";
 import Input from "../../components/Input";
+import Select from "../../components/Select"; // Убедитесь, что Select компонент импортирован
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 
-const Bank = () => {
+const Sell = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
-  const [payments, setPayments] = useState({
-    cardNumber: "",
+  const [file, setFile] = useState({
+    title: "",
+    description: "",
+    price: "",
     accountNumber: "",
-    corrAccount: "",
-    bic: "",
+    saleType: "",
+    isExclusive: "",
+    licenseTerm: "",
+    file: null,
   });
-
-  useEffect(() => {
-    // Fetch bank details on component mount
-    axios({
-      method: "get",
-      url: "https://api.intelectpravo.ru/profile/bank-details",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        console.log(response);
-        setPayments(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [token]);
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
-    setPayments((prevPayments) => ({
-      ...prevPayments,
+    setFile((prevFile) => ({
+      ...prevFile,
       [name]: value,
     }));
   };
@@ -43,10 +30,10 @@ const Bank = () => {
     e.preventDefault(); // Prevent page reload
 
     try {
-      // Submit bank details data
+      // Submit form data
       const response = await axios.post(
         "https://api.intelectpravo.ru/profile/bank-details",
-        payments,
+        file,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,6 +46,14 @@ const Bank = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile((prevState) => ({
+      ...prevState,
+      file: selectedFile, // Set the selected file to the state
+    }));
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -67,34 +62,46 @@ const Bank = () => {
       <h3 className="font-semibold text-xl">Реквизиты пользователя</h3>
 
       <Input
-        label="НОМЕР БАНКОВСКОЙ КАРТЫ"
+        label="Название произведения"
         type="text"
-        name="cardNumber"
-        value={payments.cardNumber || ""}
+        name="title"
+        value={file.title || ""}
         onChange={HandleInput}
       />
       <Input
-        label="РАСЧЕТНЫЙ СЧЁТ"
+        label="Описание"
         type="text"
-        name="accountNumber"
-        value={payments.accountNumber || ""}
+        name="description"
+        value={file.description || ""}
         onChange={HandleInput}
       />
       <Input
-        label="КОРРЕСПОНДЕТСКИЙ СЧЁТ"
+        label="Цена"
         type="text"
-        name="corrAccount"
-        value={payments.corrAccount || ""}
+        name="price"
+        value={file.price || ""}
         onChange={HandleInput}
       />
       <Input
-        label="БИК БАНКА"
+        label="Цена"
         type="text"
-        name="bic"
-        value={payments.bic || ""}
+        name="licenseTerm"
+        value={file.licenseTerm || ""}
         onChange={HandleInput}
       />
 
+      <Select
+        label="Тип продажи"
+        name="saleType"
+        value={file.saleType || ""}
+        onChange={HandleInput}
+        options={[
+          { label: "Права", value: "rules" },
+          { label: "Лицензия", value: "license" },
+        ]}
+      />
+
+      <Input label="Файл" type="file" name="file" onChange={handleFileChange} />
       <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
@@ -111,4 +118,4 @@ const Bank = () => {
   );
 };
 
-export default Bank;
+export default Sell;

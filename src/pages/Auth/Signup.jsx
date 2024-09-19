@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios"; // Import axios
 import Input from "../../components/Input";
-import { Cookies } from "react-cookie";
+import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const SignUp = () => {

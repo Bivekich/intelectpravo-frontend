@@ -1,7 +1,7 @@
 import axios from "axios";
 import Input from "../../components/Input";
 import { useNavigate } from "react-router-dom";
-import { Cookies } from "react-cookie";
+import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 
 const Profile = () => {
@@ -112,6 +112,12 @@ const Profile = () => {
       >
         Сохранить изменения
       </button>
+      <a
+        href="/"
+        className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
+      >
+        Назад
+      </a>
     </form>
   );
 };

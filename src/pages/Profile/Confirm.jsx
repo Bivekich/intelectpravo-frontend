@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Input from "../../components/Input";
-import { Cookies } from "react-cookie";
+import Cookies from "universal-cookie";
 import axios from "axios";
 
 const Confirm = () => {
@@ -37,6 +37,8 @@ const Confirm = () => {
       });
   }, [token]);
 
+  console.log(profile);
+
   const HandleInput = (e) => {
     const { name, value } = e.target;
     setProfile((prevProfile) => ({
@@ -51,6 +53,13 @@ const Confirm = () => {
       ...prevState,
       documentPhoto: file, // Set the selected file to the state
     }));
+  };
+
+  // Format date to YYYY-MM-DD for input[type="date"]
+  const formatDateForInput = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toISOString().split("T")[0]; // Extract date part in YYYY-MM-DD format
   };
 
   const handleSubmit = async (e) => {
@@ -83,26 +92,28 @@ const Confirm = () => {
       );
 
       console.log(response);
-      if (response.data.message === "Профиль подтвержден.") {
-        // Prepare FormData for file upload
-        const formData = new FormData();
-        formData.append("documentPhoto", documentPhoto);
+      if (typeof profile.documentPhoto == "object") {
+        if (response.data.message === "Профиль подтвержден.") {
+          // Prepare FormData for file upload
+          const formData = new FormData();
+          formData.append("documentPhoto", documentPhoto);
 
-        // Upload the file
-        const fileResponse = await axios.post(
-          "https://api.intelectpravo.ru/profile/upload-photo",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
+          // Upload the file
+          const fileResponse = await axios.post(
+            "https://api.intelectpravo.ru/profile/upload-photo",
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          console.log(fileResponse);
+          if (fileResponse.data.message === "Фото успешно загружено.") {
+            // Handle success (e.g., redirect or show a message)
           }
-        );
-
-        console.log(fileResponse);
-        if (fileResponse.data.message === "Фото успешно загружено.") {
-          // Handle success (e.g., redirect or show a message)
         }
       }
     } catch (error) {
@@ -153,7 +164,7 @@ const Confirm = () => {
         label="Дата рождения"
         type="date"
         name="birthDate"
-        value={profile.birthDate || ""}
+        value={formatDateForInput(profile.birthDate) || ""}
         onChange={HandleInput}
         required
       />
@@ -177,7 +188,7 @@ const Confirm = () => {
         label="Когда выдан"
         type="date"
         name="passportIssuedDate"
-        value={profile.passportIssuedDate || ""}
+        value={formatDateForInput(profile.passportIssuedDate) || ""}
         onChange={HandleInput}
       />
       <Input
@@ -187,13 +198,19 @@ const Confirm = () => {
         value={profile.passportIssuedBy || ""}
         onChange={HandleInput}
       />
+      {profile.documentPhoto &&
+        typeof profile.documentPhoto === "string" &&
+        profile.documentPhoto !== "" && (
+          <img src={profile.documentPhoto} alt="Document" />
+        )}
+
       <Input
         label="Фотография документа"
         type="file"
         name="documentPhoto"
         accept="image/*" // Restrict file type to images
         onChange={handleFileChange}
-        required
+        required={typeof profile.documentPhoto != "string"}
       />
 
       <button

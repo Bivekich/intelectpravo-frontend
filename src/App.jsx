@@ -7,6 +7,7 @@ import Profile from "./pages/Profile/Profile";
 import Confirm from "./pages/Profile/Confirm";
 import Bank from "./pages/Profile/Bank";
 import Home from "./pages/Home/Home";
+import Sell from "./pages/Sell/Sell";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/sell" element={<Sell />} />
             <Route path="/singin" element={<SingIn />} />
             <Route path="/singup" element={<SingUp />} />
             <Route path="/auth" element={<Auth />} />
