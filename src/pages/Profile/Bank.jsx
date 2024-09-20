@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 const Bank = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
+  const [message, setMessage] = useState("");
   const [payments, setPayments] = useState({
     cardNumber: "",
     accountNumber: "",
@@ -54,6 +55,19 @@ const Bank = () => {
         }
       );
       console.log(response);
+      const response_ = await axios.post(
+        "https://api.intelectpravo.ru/profile/confirm",
+        payments,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response_);
+      if (response_.data) {
+        setMessage(response_.data.message);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -72,6 +86,7 @@ const Bank = () => {
         name="cardNumber"
         value={payments.cardNumber || ""}
         onChange={HandleInput}
+        required
       />
       <Input
         label="РАСЧЕТНЫЙ СЧЁТ"
@@ -79,6 +94,7 @@ const Bank = () => {
         name="accountNumber"
         value={payments.accountNumber || ""}
         onChange={HandleInput}
+        required
       />
       <Input
         label="КОРРЕСПОНДЕТСКИЙ СЧЁТ"
@@ -86,6 +102,7 @@ const Bank = () => {
         name="corrAccount"
         value={payments.corrAccount || ""}
         onChange={HandleInput}
+        required
       />
       <Input
         label="БИК БАНКА"
@@ -93,8 +110,9 @@ const Bank = () => {
         name="bic"
         value={payments.bic || ""}
         onChange={HandleInput}
+        required
       />
-
+      {message != "" && <span>{message}</span>}
       <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white transition hover:scale-105"

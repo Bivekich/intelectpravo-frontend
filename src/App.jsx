@@ -8,6 +8,9 @@ import Confirm from "./pages/Profile/Confirm";
 import Bank from "./pages/Profile/Bank";
 import Home from "./pages/Home/Home";
 import Sell from "./pages/Sell/Sell";
+import Buy from "./pages/Buy/Buy";
+import Product from "./pages/Buy/Product";
+import Files from "./pages/FIles/FIles";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -17,6 +20,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/buy" element={<Buy />} />
+            <Route path="/buy/product/:pid" element={<Product />} />
+            <Route path="/files" element={<Files />} />
             <Route path="/sell" element={<Sell />} />
             <Route path="/singin" element={<SingIn />} />
             <Route path="/singup" element={<SingUp />} />

@@ -3,10 +3,13 @@ import Input from "../../components/Input";
 import Select from "../../components/Select"; // Убедитесь, что Select компонент импортирован
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
+import FormData from "form-data";
 
 const Sell = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
+  const [license, setLicense] = useState(false);
+  const [message, setMessage] = useState(false);
   const [file, setFile] = useState({
     title: "",
     description: "",
@@ -25,33 +28,61 @@ const Sell = () => {
       [name]: value,
     }));
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
-
-    try {
-      // Submit form data
-      const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/bank-details",
-        file,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log(response);
-    } catch (error) {
-      console.log(error);
-    }
+  const HandleCheckbox = (e) => {
+    const { name, checked } = e.target;
+    setFile((prevFile) => ({
+      ...prevFile,
+      [name]: checked,
+    }));
   };
-
+  const HandleSelect = (e) => {
+    const { name, value } = e.target;
+    setFile((prevFile) => ({
+      ...prevFile,
+      [name]: value,
+    }));
+    setLicense(value == "license");
+  };
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile((prevState) => ({
       ...prevState,
       file: selectedFile, // Set the selected file to the state
     }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent page reload
+
+    // Create a form data instance
+    const formData = new FormData();
+    formData.append("file", file.file); // Use correct file path
+    formData.append("title", file.title);
+    formData.append("description", file.description);
+    formData.append("price", file.price);
+    formData.append("accountNumber", file.accountNumber);
+    formData.append("saleType", file.saleType);
+    formData.append("isExclusive", file.isExclusive);
+    formData.append("licenseTerm", file.licenseTerm);
+
+    // Send POST request
+    axios
+      .post("http://localhost:3000/sale/create", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        setMessage("Произведение опублиовано на продажу");
+      })
+      .catch((error) => {
+        console.error(
+          "Error:",
+          error.response ? error.response.data : error.message
+        );
+      });
   };
 
   return (
@@ -67,6 +98,7 @@ const Sell = () => {
         name="title"
         value={file.title || ""}
         onChange={HandleInput}
+        required
       />
       <Input
         label="Описание"
@@ -74,6 +106,7 @@ const Sell = () => {
         name="description"
         value={file.description || ""}
         onChange={HandleInput}
+        required
       />
       <Input
         label="Цена"
@@ -81,35 +114,55 @@ const Sell = () => {
         name="price"
         value={file.price || ""}
         onChange={HandleInput}
-      />
-      <Input
-        label="Цена"
-        type="text"
-        name="licenseTerm"
-        value={file.licenseTerm || ""}
-        onChange={HandleInput}
+        required
       />
 
       <Select
         label="Тип продажи"
         name="saleType"
         value={file.saleType || ""}
-        onChange={HandleInput}
+        onChange={HandleSelect}
         options={[
-          { label: "Права", value: "rules" },
+          { label: "Права", value: "rights" },
           { label: "Лицензия", value: "license" },
         ]}
+        required
       />
 
-      <Input label="Файл" type="file" name="file" onChange={handleFileChange} />
+      <Input
+        label="Файл"
+        type="file"
+        name="file"
+        onChange={handleFileChange}
+        required
+      />
+
+      <div className={`flex flex-row gap-2 ${!license ? "hidden" : ""}`}>
+        <input
+          type="checkbox"
+          name="isExclusive"
+          id="isExclusive"
+          onChange={HandleCheckbox}
+        />
+        <label htmlFor="isExclusive">Эксклюзивный</label>
+      </div>
+      <Input
+        label="Срок лицензии лет"
+        type="text"
+        name="licenseTerm"
+        hidden={!license}
+        value={file.licenseTerm || ""}
+        onChange={HandleInput}
+      />
+      {message && <span>{message}</span>}
       <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
       >
-        Сохранить изменения
+        Продать
       </button>
       <a
-        href="/profile"
+        href="/"
         className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
       >
         Назад

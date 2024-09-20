@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 
-const Input = ({ label, type, name, value, onChange, required = false }) => {
+const Input = ({
+  label,
+  type,
+  name,
+  value,
+  onChange,
+  hidden = false,
+  required = false,
+}) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const labelStyle =
@@ -9,7 +17,7 @@ const Input = ({ label, type, name, value, onChange, required = false }) => {
       : "absolute top-1/2 left-2 transform -translate-y-1/2 text-gray-500 transition-all cursor-pointer";
 
   return (
-    <div className="relative">
+    <div className="relative" hidden={hidden}>
       <input
         type={type}
         name={name}
@@ -21,6 +29,7 @@ const Input = ({ label, type, name, value, onChange, required = false }) => {
         className="rounded-xl p-2 border-2 w-full transition hover:scale-105 focus:scale-105 outline-none"
         required={required}
       />
+
       <label htmlFor={name} className={labelStyle}>
         {label}
       </label>

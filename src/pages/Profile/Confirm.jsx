@@ -5,6 +5,7 @@ import axios from "axios";
 
 const Confirm = () => {
   const cookies = new Cookies();
+  const [message, setMessage] = useState(""); // Initialize state with an empty strings
   const [profile, setProfile] = useState({
     fullName: "",
     email: "",
@@ -30,6 +31,11 @@ const Confirm = () => {
     })
       .then((response) => {
         console.log(response);
+        setMessage(
+          response.data.isConfirmed
+            ? "Профиль подтвержден"
+            : "Чтобы подтвердить профиль необходимо заполнить все поля данной формы и все поря формы с реквизитами"
+        );
         setProfile(response.data);
       })
       .catch((error) => {
@@ -81,39 +87,29 @@ const Confirm = () => {
         }
       );
       console.log(response_);
-      const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/confirm",
-        profileData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
 
-      console.log(response);
+      console.log(response_);
       if (typeof profile.documentPhoto == "object") {
-        if (response.data.message === "Профиль подтвержден.") {
-          // Prepare FormData for file upload
-          const formData = new FormData();
-          formData.append("documentPhoto", documentPhoto);
+        setMessage(response_.data.message);
+        // Prepare FormData for file upload
+        const formData = new FormData();
+        formData.append("documentPhoto", documentPhoto);
 
-          // Upload the file
-          const fileResponse = await axios.post(
-            "https://api.intelectpravo.ru/profile/upload-photo",
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-
-          console.log(fileResponse);
-          if (fileResponse.data.message === "Фото успешно загружено.") {
-            // Handle success (e.g., redirect or show a message)
+        // Upload the file
+        const fileResponse = await axios.post(
+          "https://api.intelectpravo.ru/profile/upload-photo",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
           }
+        );
+
+        console.log(fileResponse);
+        if (fileResponse.data.message === "Фото успешно загружено.") {
+          // Handle success (e.g., redirect or show a message)
         }
       }
     } catch (error) {
@@ -212,6 +208,7 @@ const Confirm = () => {
         onChange={handleFileChange}
         required={typeof profile.documentPhoto != "string"}
       />
+      {message != "" && <span>{message}</span>}
 
       <button
         type="submit"

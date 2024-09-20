@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 const SignUp = () => {
   const cookies = new Cookies();
   const [code, setCode] = useState(""); // Initialize state with an empty string
+  const [message, setMessage] = useState(""); // Initialize state with an empty string
   const email = cookies.get("email");
   const navigate = useNavigate(); // Initialize navigate
 
@@ -29,13 +30,9 @@ const SignUp = () => {
         navigate("/profile"); // Navigate to the Signin page
       }
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        // Handle 404 error
-        console.error("Resource not found.");
-      } else {
-        // Handle other errors or network issues
-        console.error("An error occurred:", error);
-      }
+      // Handle other errors or network issues
+      console.error("An error occurred:", error);
+      setMessage(error.response.data.message);
     }
   };
 
@@ -47,6 +44,7 @@ const SignUp = () => {
       <h3 className="font-semibold text-xl">
         Введите код подтверждения, который был отправлен Вам на почту: {email}
       </h3>
+      {message != "" && <span>{message}</span>}
       <Input
         label="Код"
         type="text"

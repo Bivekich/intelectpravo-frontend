@@ -28,7 +28,7 @@ const Select = ({
         required={required}
       >
         <option value="" disabled>
-          Select an option
+          Выберите тип продажи
         </option>
         {options.map((option, index) => (
           <option key={index} value={option.value}>

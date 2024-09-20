@@ -8,6 +8,7 @@ const Profile = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
   const navigate = useNavigate();
+  const [message, setMessage] = useState(""); // Initialize state with an empty strings
   const [confirmed, setConfirmed] = useState(false);
   const [profile, setProfile] = useState({
     fullName: "",
@@ -34,6 +35,11 @@ const Profile = () => {
       .then((response) => {
         console.log(response);
         setProfile(response.data);
+        setMessage(
+          response.data.isConfirmed
+            ? "Профиль подтвержден"
+            : "Чтобы подтвердить профиль необходимо заполнить все поля данной формы и все поря формы с реквизитами"
+        );
         setConfirmed(response.data.isConfirmed);
       })
       .catch((error) => {
@@ -97,14 +103,13 @@ const Profile = () => {
       >
         {!confirmed ? "Подтвердить" : "Полная Информация"}
       </a>
-      {confirmed && (
-        <a
-          href="/profile/bank"
-          className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
-        >
-          Реквизиты
-        </a>
-      )}
+      <a
+        href="/profile/bank"
+        className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
+      >
+        Реквизиты
+      </a>
+      {message != "" && <span>{message}</span>}
 
       <button
         type="submit"
