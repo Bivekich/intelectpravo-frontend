@@ -27,7 +27,7 @@ const SignUp = () => {
       console.log(response);
       if (response.status === 200) {
         cookies.set("token", response.data.token, { path: "/" });
-        navigate("/profile"); // Navigate to the Signin page
+        navigate("/");
       }
     } catch (error) {
       // Handle other errors or network issues

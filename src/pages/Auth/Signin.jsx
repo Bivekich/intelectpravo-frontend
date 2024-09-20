@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "universal-cookie";
 import axios from "axios";
 
-const SingIn = () => {
+const SignIn = () => {
   const navigate = useNavigate();
   const cookies = new Cookies();
   const [profile, setProfile] = useState({
@@ -82,4 +82,4 @@ const SingIn = () => {
   );
 };
 
-export default SingIn;
+export default SignIn;

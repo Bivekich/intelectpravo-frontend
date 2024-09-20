@@ -33,14 +33,14 @@ const Auth = () => {
         // Successful response, status will be 2xx
         console.log(response.status);
         if (response.status === 200) {
-          navigate("/singup");
+          navigate("/signup");
         }
       })
       .catch(function (error) {
         if (error.response && error.response.status === 404) {
           // Handle 404 error
 
-          navigate("/singin");
+          navigate("/signin");
         } else {
           // Handle other errors or network issues
           console.error("An error occurred:", error);

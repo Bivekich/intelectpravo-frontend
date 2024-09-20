@@ -88,7 +88,7 @@ const Sell = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
+      className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
     >
       <h3 className="font-semibold text-xl">Реквизиты пользователя</h3>
 
