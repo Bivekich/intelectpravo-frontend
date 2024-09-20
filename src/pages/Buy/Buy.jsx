@@ -8,7 +8,7 @@ const getItems = async (limit, offset, token) => {
   try {
     const response = await axios({
       method: "get",
-      url: `http://localhost:3000/sale/sales?limit=${limit}&offset=${offset}`, // Pass limit and offset as query params
+      url: `https://api.intelectpravo.ru/sale/sales?limit=${limit}&offset=${offset}`, // Pass limit and offset as query params
       headers: {
         Authorization: `Bearer ${token}`,
       },

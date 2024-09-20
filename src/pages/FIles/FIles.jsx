@@ -20,7 +20,7 @@ const Files = () => {
     const fetchFiles = async () => {
       const response_boughts = await axios({
         method: "get",
-        url: `http://localhost:3000/sale/user-boughts`, // Pass limit and offset as query params
+        url: `https://api.intelectpravo.ru/sale/user-boughts`, // Pass limit and offset as query params
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -30,7 +30,7 @@ const Files = () => {
       }
       const response_selled = await axios({
         method: "get",
-        url: `http://localhost:3000/sale/user-selled`, // Pass limit and offset as query params
+        url: `https://api.intelectpravo.ru/sale/user-selled`, // Pass limit and offset as query params
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +40,7 @@ const Files = () => {
       }
       const response_myfiles = await axios({
         method: "get",
-        url: `http://localhost:3000/sale/user-sales`, // Pass limit and offset as query params
+        url: `https://api.intelectpravo.ru/sale/user-sales`, // Pass limit and offset as query params
         headers: {
           Authorization: `Bearer ${token}`,
         },

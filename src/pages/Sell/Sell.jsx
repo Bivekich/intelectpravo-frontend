@@ -67,7 +67,7 @@ const Sell = () => {
 
     // Send POST request
     axios
-      .post("http://localhost:3000/sale/create", formData, {
+      .post("https://api.intelectpravo.ru/sale/create", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

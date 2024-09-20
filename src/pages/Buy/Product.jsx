@@ -15,7 +15,7 @@ const Product = () => {
     // Fetch profile data on component mount
     axios({
       method: "get",
-      url: `http://localhost:3000/sale/user-buy?sid=${pid}`,
+      url: `https://api.intelectpravo.ru/sale/user-buy?sid=${pid}`,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -36,7 +36,7 @@ const Product = () => {
   const handlePaid = () => {
     axios({
       method: "get",
-      url: `http://localhost:3000/sale/user-markPaid?sid=${pid}`,
+      url: `https://api.intelectpravo.ru/sale/user-markPaid?sid=${pid}`,
       headers: {
         Authorization: `Bearer ${token}`,
       },
