@@ -38,7 +38,7 @@ const Profile = () => {
         setMessage(
           response.data.isConfirmed
             ? "Профиль подтвержден"
-            : "Чтобы подтвердить профиль необходимо заполнить все поля данной формы и все поря формы с реквизитами"
+            : 'Чтобы подтвердить профиль необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты"'
         );
         setConfirmed(response.data.isConfirmed);
       })
@@ -101,7 +101,7 @@ const Profile = () => {
         href="/profile/confirm"
         className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
       >
-        {!confirmed ? "Подтвердить" : "Полная Информация"}
+        Полная Информация
       </a>
       <a
         href="/profile/bank"

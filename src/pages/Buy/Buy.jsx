@@ -68,13 +68,19 @@ const Buy = () => {
               </a>
               <p className="w-full text-xl">Реквизиты</p>
               <p className="w-fit">Рассчетный счёт: {item.accountNumber} </p>
-              <a
-                href={`buy/product/${item.id}`}
-                type="button"
-                className="border-2 border-gray-300 py-2 rounded-xl text-white"
-              >
-                Купить
-              </a>
+              {!item.isMy ? (
+                <a
+                  href={`buy/product/${item.id}`}
+                  type="button"
+                  className="border-2 border-gray-300 py-2 rounded-xl text-gray-700 dark:text-white"
+                >
+                  Купить
+                </a>
+              ) : (
+                <span className="border-2 border-gray-300 py-2 rounded-xl text-gray-700 dark:text-white">
+                  Это Ваше произведение
+                </span>
+              )}
             </div>
           ))
         ) : (

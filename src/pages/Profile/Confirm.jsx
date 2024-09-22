@@ -13,6 +13,7 @@ const Confirm = () => {
     birthDate: "",
     passportSeries: "",
     passportNumber: "",
+    passportCode: "",
     address: "",
     passportIssuedDate: "",
     passportIssuedBy: "",
@@ -181,6 +182,14 @@ const Confirm = () => {
         required
       />
       <Input
+        label="Код подразделения"
+        type="text"
+        name="passportCode"
+        value={profile.passportCode || ""}
+        onChange={HandleInput}
+        required
+      />
+      <Input
         label="Когда выдан"
         type="date"
         name="passportIssuedDate"
@@ -214,7 +223,7 @@ const Confirm = () => {
         type="submit"
         className="bg-blue-600 rounded-xl text-white p-2 transition hover:scale-105"
       >
-        Подтвердить профиль
+        {profile.isConfirmed ? "Сохранить" : "Подтвердить профиль"}
       </button>
       <a
         href="/profile"

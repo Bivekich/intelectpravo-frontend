@@ -26,7 +26,16 @@ const SignUp = () => {
       // Successful response, status will be 2xx
       console.log(response);
       if (response.status === 200) {
-        cookies.set("token", response.data.token, { path: "/" });
+        var now = new Date();
+        var time = now.getTime();
+        var expireTime = time + 1000 * 3600 * 24; // 24 часa
+        now.setTime(expireTime);
+
+        // Исправлено: передаем объект Date
+        cookies.set("token", response.data.token, {
+          path: "/",
+          expires: now, // Передаем объект Date, а не строку
+        });
         navigate("/");
       }
     } catch (error) {
