@@ -25,7 +25,7 @@ const Header = () => {
       // Если токен есть, загружаем данные профиля
       axios({
         method: "get",
-        url: "http://localhost:3000/profile/basic",
+        url: "https://api.intelectpravo.ru/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
