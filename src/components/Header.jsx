@@ -25,7 +25,7 @@ const Header = () => {
       // Если токен есть, загружаем данные профиля
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        url: "http://localhost:3000/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,6 +37,8 @@ const Header = () => {
         })
         .catch((error) => {
           console.error(error);
+          cookies.delete("token");
+          cookies.delete("email");
           navigate("/auth", { replace: true });
         });
       setHeaderVisible(true); // Показываем заголовок, если токен есть
@@ -63,7 +65,7 @@ const Header = () => {
   }
 
   return (
-    <div className="flex flex-row flex-wrap w-full gap-3 mb-5 w-fit mx-auto">
+    <div className="flex flex-row flex-wrap w-full gap-3 mb-5 w-fit mx-auto justify-center">
       {confirmed && (
         <>
           <a

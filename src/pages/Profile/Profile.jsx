@@ -27,7 +27,7 @@ const Profile = () => {
     // Fetch profile data on component mount
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      url: "http://localhost:3000/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -65,7 +65,7 @@ const Profile = () => {
     try {
       // Submit profile data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
+        "http://localhost:3000/profile/update",
         profileData,
         {
           headers: {

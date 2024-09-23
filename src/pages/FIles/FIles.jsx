@@ -20,7 +20,7 @@ const Files = () => {
     const fetchFiles = async () => {
       const response_boughts = await axios({
         method: "get",
-        url: `https://api.intelectpravo.ru/sale/user-boughts`, // Pass limit and offset as query params
+        url: `http://localhost:3000/sale/user-boughts`, // Pass limit and offset as query params
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -30,7 +30,7 @@ const Files = () => {
       }
       const response_selled = await axios({
         method: "get",
-        url: `https://api.intelectpravo.ru/sale/user-selled`, // Pass limit and offset as query params
+        url: `http://localhost:3000/sale/user-selled`, // Pass limit and offset as query params
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +40,7 @@ const Files = () => {
       }
       const response_myfiles = await axios({
         method: "get",
-        url: `https://api.intelectpravo.ru/sale/user-sales`, // Pass limit and offset as query params
+        url: `http://localhost:3000/sale/user-sales`, // Pass limit and offset as query params
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -54,7 +54,7 @@ const Files = () => {
 
   return (
     <>
-      <div className="flex flex-row gap-5 w-[90vw] flex-wrap md:flex-nowrap lg:flex-nowrap">
+      <div className="flex flex-row gap-5 w-[90vw] flex-wrap md:flex-nowrap lg:flex-nowrap max-w-[1000px]">
         <div className="flex flex-col w-full mt-10 md:w-1/2 lg:w-1/3 gap-5">
           <div className="flex flex-col gap-2 justify-start rounded-xl border-2 px-5 py-3 w-full">
             <span className="text-xl font-bold">Купленные файлы</span>
@@ -203,15 +203,6 @@ const Files = () => {
                 <p className="w-fit text-start">
                   Рассчетный счёт: {item.accountNumber}{" "}
                 </p>
-                <p className="w-full text-xl">Договор</p>
-                <a
-                  className="w-fit"
-                  href={item.contractUrl}
-                  target="_blank"
-                  download
-                >
-                  (Договор)
-                </a>
               </div>
             ))
           ) : (

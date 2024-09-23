@@ -17,7 +17,7 @@ const Input = ({
       : "absolute top-1/2 left-2 transform -translate-y-1/2 text-gray-500 transition-all cursor-pointer";
 
   return (
-    <div className="relative" hidden={hidden}>
+    <div className="relative w-full" hidden={hidden}>
       <input
         type={type}
         name={name}
@@ -26,7 +26,7 @@ const Input = ({
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(type == "date")}
-        className="rounded-xl p-2 border-2 w-full transition hover:scale-105 focus:scale-105 outline-none"
+        className="rounded-xl p-2 bg-transparent border-2 w-full transition hover:scale-105 focus:scale-105 outline-none"
         required={required}
       />
 

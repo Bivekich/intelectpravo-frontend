@@ -2,6 +2,7 @@ import axios from "axios";
 import Input from "../../components/Input";
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 
 const Bank = () => {
   const cookies = new Cookies();
@@ -18,7 +19,7 @@ const Bank = () => {
     // Fetch bank details on component mount
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/bank-details",
+      url: "http://localhost:3000/profile/bank-details",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -46,7 +47,7 @@ const Bank = () => {
     try {
       // Submit bank details data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/bank-details",
+        "http://localhost:3000/profile/bank-details",
         payments,
         {
           headers: {
@@ -56,7 +57,7 @@ const Bank = () => {
       );
       console.log(response);
       const response_ = await axios.post(
-        "https://api.intelectpravo.ru/profile/confirm",
+        "http://localhost:3000/profile/confirm",
         payments,
         {
           headers: {
@@ -66,6 +67,8 @@ const Bank = () => {
       );
       console.log(response_);
       if (response_.data) {
+        cookies.remove("token");
+        Navigate("/auth");
         setMessage(response_.data.message);
       }
     } catch (error) {

@@ -24,7 +24,7 @@ const Auth = () => {
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/login",
+      url: "http://localhost:3000/auth/login",
       data: {
         email: profile.email,
       },

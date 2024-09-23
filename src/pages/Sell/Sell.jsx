@@ -4,12 +4,14 @@ import Select from "../../components/Select"; // Убедитесь, что Sele
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 import FormData from "form-data";
+import Loader from "../../components/Loader";
 
 const Sell = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
   const [license, setLicense] = useState(false);
   const [message, setMessage] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [file, setFile] = useState({
     title: "",
     description: "",
@@ -53,7 +55,7 @@ const Sell = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
-
+    setLoading(true);
     // Create a form data instance
     const formData = new FormData();
     formData.append("file", file.file); // Use correct file path
@@ -67,7 +69,7 @@ const Sell = () => {
 
     // Send POST request
     axios
-      .post("https://api.intelectpravo.ru/sale/create", formData, {
+      .post("http://localhost:3000/sale/create", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -76,6 +78,7 @@ const Sell = () => {
       .then((response) => {
         console.log(response.data);
         setMessage("Произведение опублиовано на продажу");
+        setLoading(false);
       })
       .catch((error) => {
         console.error(
@@ -85,7 +88,11 @@ const Sell = () => {
       });
   };
 
-  return (
+  return loading ? (
+    <div className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full">
+      <Loader />
+    </div>
+  ) : (
     <form
       onSubmit={handleSubmit}
       className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"

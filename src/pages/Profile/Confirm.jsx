@@ -25,7 +25,7 @@ const Confirm = () => {
     // Fetch profile data on component mount
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      url: "http://localhost:3000/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -79,7 +79,7 @@ const Confirm = () => {
     try {
       // Submit profile data
       const response_ = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
+        "http://localhost:3000/profile/update",
         profileData,
         {
           headers: {
@@ -98,7 +98,7 @@ const Confirm = () => {
 
         // Upload the file
         const fileResponse = await axios.post(
-          "https://api.intelectpravo.ru/profile/upload-photo",
+          "http://localhost:3000/profile/upload-photo",
           formData,
           {
             headers: {

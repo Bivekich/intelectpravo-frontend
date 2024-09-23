@@ -25,7 +25,7 @@ const SignIn = () => {
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/register",
+      url: "http://localhost:3000/auth/register",
       data: {
         email: profile.email,
         fullName: profile.fio,
