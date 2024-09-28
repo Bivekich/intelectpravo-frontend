@@ -15,10 +15,13 @@ const SignUp = () => {
     e.preventDefault(); // Prevent default form submission
 
     try {
-      const response = await axios.post("http://localhost:3000/auth/verify", {
-        email: email,
-        code: code,
-      });
+      const response = await axios.post(
+        "https://api.intelectpravo.ru/auth/verify",
+        {
+          email: email,
+          code: code,
+        }
+      );
 
       // Successful response, status will be 2xx
       console.log(response);
