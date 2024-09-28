@@ -6,12 +6,16 @@ import React, { useState, useEffect } from "react";
 
 const Profile = () => {
   const cookies = new Cookies();
+  // Время жизни данных в миллисекундах (5 минут = 300000 мс)
+  const EXPIRATION_TIME = 300000; // 5 минут
   const token = cookies.get("token");
   const navigate = useNavigate();
-  const [message, setMessage] = useState(""); // Initialize state with an empty strings
+  const [message, setMessage] = useState(""); // Initialize state with an empty string
   const [confirmed, setConfirmed] = useState(false);
   const [profile, setProfile] = useState({
-    fullName: "",
+    name: "",
+    surname: "",
+    patronymic: "",
     email: "",
     phoneNumber: "",
     birthDate: "",
@@ -27,7 +31,7 @@ const Profile = () => {
     // Fetch profile data on component mount
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      url: "http://localhost:3000/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -38,7 +42,7 @@ const Profile = () => {
         setMessage(
           response.data.isConfirmed
             ? "Профиль подтвержден"
-            : 'Чтобы подтвердить профиль необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты"'
+            : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты"'
         );
         setConfirmed(response.data.isConfirmed);
       })
@@ -49,10 +53,11 @@ const Profile = () => {
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
-    setProfile((prevProfile) => ({
-      ...prevProfile,
+    const updatedProfile = {
+      ...profile,
       [name]: value,
-    }));
+    };
+    setProfile(updatedProfile);
   };
 
   const handleSubmit = async (e) => {
@@ -65,7 +70,7 @@ const Profile = () => {
     try {
       // Submit profile data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
+        "http://localhost:3000/profile/update",
         profileData,
         {
           headers: {
@@ -74,10 +79,21 @@ const Profile = () => {
         }
       );
       console.log(response);
+      cookies.remove("token", { path: "/" });
+
+      // Redirect to the homepage
+      navigate("/"); // This will redirect the user to the homepage
       // Optionally navigate or show a success message here
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const relogin = () => {
+    cookies.remove("email", { path: "/" });
+    cookies.remove("token", { path: "/" });
+    navigate("/");
+    console.log("User logged out. Cookie removed.");
   };
 
   return (
@@ -88,12 +104,27 @@ const Profile = () => {
       <h3 className="font-semibold text-xl">Профиль пользователя</h3>
 
       <Input
-        label="ФИО"
+        label="Фамилия"
         type="text"
-        name="fullName"
-        value={profile.fullName || ""}
+        name="surname"
+        value={profile.surname || ""}
         onChange={HandleInput}
         required
+      />
+      <Input
+        label="Имя"
+        type="text"
+        name="name"
+        value={profile.name || ""}
+        onChange={HandleInput}
+        required
+      />
+      <Input
+        label="Отчество"
+        type="text"
+        name="patronymic"
+        value={profile.patronymic || ""}
+        onChange={HandleInput}
       />
       {/* Add more Input components here for other profile fields */}
 
@@ -101,7 +132,7 @@ const Profile = () => {
         href="/profile/confirm"
         className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
       >
-        Полная Информация
+        Редактировать учетную запись
       </a>
       <a
         href="/profile/bank"
@@ -109,7 +140,19 @@ const Profile = () => {
       >
         Реквизиты
       </a>
-      {message != "" && <span>{message}</span>}
+      <a
+        href="/profile/changepass"
+        className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
+      >
+        Изменить пароль
+      </a>
+      <a
+        href="/profile/changemail"
+        className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
+      >
+        Изменить почту
+      </a>
+      {message && <span>{message}</span>}
 
       <button
         type="submit"
@@ -123,6 +166,14 @@ const Profile = () => {
       >
         Назад
       </a>
+
+      <button
+        type="button"
+        onClick={relogin}
+        className="bg-red-600 rounded-xl text-white transition hover:scale-105"
+      >
+        Выйти
+      </button>
     </form>
   );
 };

@@ -11,6 +11,10 @@ import Sell from "./pages/Sell/Sell";
 import Buy from "./pages/Buy/Buy";
 import Product from "./pages/Buy/Product";
 import Files from "./pages/FIles/FIles";
+import Password from "./pages/Profile/Password";
+import LogInByPass from "./pages/Auth/LogInByPass";
+import Email from "./pages/Profile/Email";
+import ConfirmEmail from "./pages/Profile/Confirmemail";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -27,9 +31,13 @@ function App() {
             <Route path="/signin" element={<Signin />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/loginbypass" element={<LogInByPass />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/confirm" element={<Confirm />} />
             <Route path="/profile/bank" element={<Bank />} />
+            <Route path="/profile/changepass" element={<Password />} />
+            <Route path="/profile/changemail" element={<Email />} />
+            <Route path="/profile/confirmemail" element={<ConfirmEmail />} />
           </Route>
         </Routes>
       </BrowserRouter>

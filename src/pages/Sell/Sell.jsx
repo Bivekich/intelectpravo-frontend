@@ -1,6 +1,6 @@
 import axios from "axios";
 import Input from "../../components/Input";
-import Select from "../../components/Select"; // Убедитесь, что Select компонент импортирован
+import Select from "../../components/Select";
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 import FormData from "form-data";
@@ -23,42 +23,67 @@ const Sell = () => {
     file: null,
   });
 
+  // Load data from localStorage when the component mounts
+  useEffect(() => {
+    const savedData = localStorage.getItem("formData");
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      setFile(parsedData);
+      setLicense(parsedData.saleType === "license");
+    }
+  }, []);
+
+  // Function to save form data to localStorage
+  const saveToLocalStorage = (updatedData) => {
+    localStorage.setItem("formData", JSON.stringify(updatedData));
+  };
+
   const HandleInput = (e) => {
     const { name, value } = e.target;
-    setFile((prevFile) => ({
-      ...prevFile,
+    const updatedFile = {
+      ...file,
       [name]: value,
-    }));
+    };
+    setFile(updatedFile);
+    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
   };
+
   const HandleCheckbox = (e) => {
     const { name, checked } = e.target;
-    setFile((prevFile) => ({
-      ...prevFile,
+    const updatedFile = {
+      ...file,
       [name]: checked,
-    }));
+    };
+    setFile(updatedFile);
+    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
   };
+
   const HandleSelect = (e) => {
     const { name, value } = e.target;
-    setFile((prevFile) => ({
-      ...prevFile,
+    const updatedFile = {
+      ...file,
       [name]: value,
-    }));
-    setLicense(value == "license");
+    };
+    setFile(updatedFile);
+    setLicense(value === "license");
+    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
   };
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    setFile((prevState) => ({
-      ...prevState,
-      file: selectedFile, // Set the selected file to the state
-    }));
+    const updatedFile = {
+      ...file,
+      file: selectedFile,
+    };
+    setFile(updatedFile);
+    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
     setLoading(true);
-    // Create a form data instance
     const formData = new FormData();
-    formData.append("file", file.file); // Use correct file path
+    formData.append("file", file.file);
     formData.append("title", file.title);
     formData.append("description", file.description);
     formData.append("price", file.price);
@@ -67,9 +92,8 @@ const Sell = () => {
     formData.append("isExclusive", file.isExclusive);
     formData.append("licenseTerm", file.licenseTerm);
 
-    // Send POST request
     axios
-      .post("https://api.intelectpravo.ru/sale/create", formData, {
+      .post("http://localhost:3000/sale/create", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -79,6 +103,7 @@ const Sell = () => {
         console.log(response.data);
         setMessage("Произведение опублиовано на продажу");
         setLoading(false);
+        localStorage.removeItem("formData"); // Clear the data from localStorage after successful submission
       })
       .catch((error) => {
         console.error(
@@ -150,6 +175,7 @@ const Sell = () => {
           name="isExclusive"
           id="isExclusive"
           onChange={HandleCheckbox}
+          checked={file.isExclusive || false}
         />
         <label htmlFor="isExclusive">Эксклюзивный</label>
       </div>

@@ -8,6 +8,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [confirmed, setConfirmed] = useState(false);
+  const [status, setStatus] = useState("Не подтвержден");
   const [headerVisible, setHeaderVisible] = useState(true); // состояние для видимости заголовка
 
   const checkToken = () => {
@@ -16,6 +17,7 @@ const Header = () => {
       if (
         location.pathname !== "/auth" &&
         location.pathname !== "/signin" &&
+        location.pathname !== "/loginbypass" &&
         location.pathname !== "/signup"
       ) {
         navigate("/auth", { replace: true });
@@ -25,7 +27,7 @@ const Header = () => {
       // Если токен есть, загружаем данные профиля
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        url: "http://localhost:3000/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -33,6 +35,11 @@ const Header = () => {
         .then((response) => {
           if (response.data) {
             setConfirmed(response.data.isConfirmed);
+            if (response.data.admin) {
+              setStatus("Администратор");
+            } else if (response.data.isConfirmed) {
+              setStatus("Подтвержден");
+            }
           }
         })
         .catch((error) => {
@@ -65,38 +72,51 @@ const Header = () => {
   }
 
   return (
-    <div className="flex flex-row flex-wrap w-full gap-3 mb-5 w-fit mx-auto justify-center">
-      {confirmed && (
-        <>
+    <>
+      <div className="flex flex-col gap-3 mb-3">
+        <div className="flex justify-between gap-3 items-center px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105">
+          <img src="/logo.svg" alt="ЛОГО" width="30" />
+          <span>{status}</span>
+        </div>
+        <div className="flex flex-row flex-wrap w-full gap-3 w-fit mx-auto justify-center">
+          {confirmed && (
+            <>
+              <a
+                className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
+                href="/sell"
+              >
+                Продать
+              </a>
+              <a
+                className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
+                href="/buy"
+              >
+                Купить
+              </a>
+            </>
+          )}
           <a
             className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-            href="/sell"
+            href="/profile"
           >
-            Продать
+            Профиль
           </a>
-          <a
-            className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-            href="/buy"
-          >
-            Купить
-          </a>
-        </>
-      )}
-      <a
-        className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-        href="/profile"
-      >
-        Профиль
-      </a>
-      {confirmed && (
-        <a
-          className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-          href="/files"
-        >
-          Файлы
-        </a>
-      )}
-    </div>
+          {confirmed && (
+            <a
+              className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
+              href="/files"
+            >
+              Файлы
+            </a>
+          )}
+        </div>
+        {/* {confirmed && (
+          <div className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105">
+            Профиль подтвержден
+          </div>
+        )} */}
+      </div>
+    </>
   );
 };
 

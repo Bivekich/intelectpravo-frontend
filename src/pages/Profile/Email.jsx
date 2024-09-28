@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import Input from "../../components/Input";
 import Cookies from "universal-cookie";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Email = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState({
     name: "",
@@ -52,7 +54,7 @@ const Email = () => {
     try {
       // Submit profile data
       const response = await axios.get(
-        `http://localhost:3000/profile/confirm-email?email${profile.email}`,
+        `http://localhost:3000/profile/confirm-email-code?email=${profile.email}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,7 +63,7 @@ const Email = () => {
       );
       console.log(response);
       // Redirect to the homepage
-      navigate("/profile/confirmemail"); // This will redirect the user to the homepage
+      navigate(`/profile/confirmemail/?email=${profile.email}`); // This will redirect the user to the homepage
       // Optionally navigate or show a success message here
     } catch (error) {
       console.log(error);

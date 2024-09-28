@@ -7,7 +7,7 @@ import Cookies from "universal-cookie";
 const Auth = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState({
-    email: "",
+    login: "",
   });
   const cookies = new Cookies();
 
@@ -20,20 +20,20 @@ const Auth = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault(); // Отключаем перезагрузку страницы
-    cookies.set("email", profile.email, { path: "/" }); // Set maxAge for cookie expiration
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/login",
+      url: "http://localhost:3000/auth/login",
       data: {
-        email: profile.email,
+        login: profile.login,
       },
     })
       .then(function (response) {
         // Successful response, status will be 2xx
-        console.log(response.status);
+        console.log(response);
         if (response.status === 200) {
-          navigate("/signup");
+          cookies.set("email", response.data.email, { path: "/" }); // Set maxAge for cookie expiration
+          navigate("/loginbypass");
         }
       })
       .catch(function (error) {
@@ -53,12 +53,12 @@ const Auth = () => {
         onSubmit={handleSubmit}
         className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
       >
-        <h3 className="font-semibold text-xl">Введите Email</h3>
+        <h3 className="font-semibold text-xl">Вход в систему</h3>
         <Input
-          label="Почта"
-          type="email"
-          name="email"
-          value={profile.email}
+          label="Введите логин"
+          type="text"
+          name="login"
+          value={profile.login}
           onChange={HandleInput}
           required
         />
