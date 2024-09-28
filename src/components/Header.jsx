@@ -75,7 +75,7 @@ const Header = () => {
     <>
       <div className="flex flex-col gap-3 mb-3">
         <div className="flex justify-between gap-3 items-center px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105">
-          <img src="/logo.svg" alt="ЛОГО" width="30" />
+          <span>IntelectPravo</span>
           <span>{status}</span>
         </div>
         <div className="flex flex-row flex-wrap w-full gap-3 w-fit mx-auto justify-center">
