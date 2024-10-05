@@ -9,11 +9,14 @@ import md5 from "md5";
 const SignIn = () => {
   const navigate = useNavigate();
   const cookies = new Cookies();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
     patronymic: "",
-    email: cookies.get("email") || "",
+    email:
+      cookies.get("email") ||
+      (emailRegex.test(cookies.get("login")) ? cookies.get("login") : ""),
     password: "",
     confirmPassword: "",
   });
@@ -83,6 +86,7 @@ const SignIn = () => {
           name="email"
           value={profile.email}
           onChange={HandleInput}
+          readOnly={profile.email}
           required
         />
         <Input

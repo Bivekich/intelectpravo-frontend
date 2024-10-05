@@ -8,6 +8,7 @@ const Input = ({
   onChange,
   hidden = false,
   required = false,
+  readOnly = false,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -26,6 +27,7 @@ const Input = ({
         name={name}
         id={name}
         value={value}
+        readOnly={readOnly}
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)} // Reset focus state on blur

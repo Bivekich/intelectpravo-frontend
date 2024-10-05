@@ -9,6 +9,7 @@ const Auth = () => {
   const [profile, setProfile] = useState({
     login: "",
   });
+  const [errorMessage, setErrorMessage] = useState(""); // Для отображения ошибок валидации
   const cookies = new Cookies();
 
   const HandleInput = (e) => {
@@ -18,8 +19,21 @@ const Auth = () => {
       [name]: value,
     }));
   };
+
+  const validateLogin = (login) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[0-9\s-()]{10,15}$/;
+    return emailRegex.test(login) || phoneRegex.test(login);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Отключаем перезагрузку страницы
+
+    // Валидация поля login
+    if (!validateLogin(profile.login)) {
+      setErrorMessage("Введите корректный email или номер телефона.");
+      return;
+    }
 
     axios({
       method: "post",
@@ -29,24 +43,24 @@ const Auth = () => {
       },
     })
       .then(function (response) {
-        // Successful response, status will be 2xx
+        // Успешный ответ
         console.log(response);
         if (response.status === 200) {
-          cookies.set("email", response.data.email, { path: "/" }); // Set maxAge for cookie expiration
+          cookies.set("email", response.data.email, { path: "/" });
           navigate("/loginbypass");
         }
       })
       .catch(function (error) {
         if (error.response && error.response.status === 404) {
-          // Handle 404 error
-
+          // Обработка ошибки 404
+          cookies.set("login", profile.login, { path: "/" });
           navigate("/signin");
         } else {
-          // Handle other errors or network issues
-          console.error("An error occurred:", error);
+          console.error("Произошла ошибка:", error);
         }
       });
   };
+
   return (
     <>
       <form
@@ -62,6 +76,8 @@ const Auth = () => {
           onChange={HandleInput}
           required
         />
+
+        {errorMessage && <div className="text-red-500">{errorMessage}</div>}
 
         <button
           type="submit"
