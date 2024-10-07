@@ -14,6 +14,29 @@ const Password = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState(""); // For success message
 
+  // Функция для валидации нового пароля
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("Пароль должен содержать не менее 8 символов.");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Пароль должен содержать хотя бы одну заглавную букву.");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Пароль должен содержать хотя бы одну строчную букву.");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("Пароль должен содержать хотя бы одну цифру.");
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      errors.push(
+        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)."
+      );
+    }
+    return errors;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setPasswordData((prevData) => ({
@@ -25,18 +48,25 @@ const Password = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate password confirmation
+    // Проверяем, совпадают ли новые пароли
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setError("Новые пароли не совпадают");
       return;
     }
 
-    setError(""); // Clear any previous errors
+    // Валидация нового пароля
+    const passwordErrors = validatePassword(passwordData.newPassword);
+    if (passwordErrors.length > 0) {
+      setError(passwordErrors.join(" "));
+      return;
+    }
+
+    setError(""); // Очистить предыдущие ошибки
 
     try {
       const token = cookies.get("token");
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/change-password", // Change URL to your endpoint
+        "https://api.intelectpravo.ru/profile/change-password", // Измените URL на свой
         {
           currentPassword: md5(passwordData.currentPassword),
           newPassword: md5(passwordData.newPassword),
@@ -55,11 +85,10 @@ const Password = () => {
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
-        }); // Clear fields
-        console.log(response);
+        }); // Очистить поля
       }
     } catch (error) {
-      console.error("Error changing password:", error);
+      console.error("Ошибка при изменении пароля:", error);
       setMessage("");
       setError("Произошла ошибка при изменении пароля.");
     }
@@ -88,7 +117,7 @@ const Password = () => {
         required
       />
       <Input
-        label="Подтвердитпе пароль"
+        label="Подтвердите пароль"
         type="password"
         name="confirmPassword"
         value={passwordData.confirmPassword}
@@ -96,9 +125,9 @@ const Password = () => {
         required
       />
       {error && <span className="text-red-600">{error}</span>}{" "}
-      {/* Error message */}
+      {/* Сообщение об ошибке */}
       {message && <span className="text-green-600">{message}</span>}{" "}
-      {/* Success message */}
+      {/* Сообщение об успешном изменении */}
       <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white transition hover:scale-105"

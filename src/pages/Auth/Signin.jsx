@@ -1,5 +1,5 @@
 import Input from "../../components/Input";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "universal-cookie";
 import axios from "axios";
@@ -10,6 +10,8 @@ const SignIn = () => {
   const navigate = useNavigate();
   const cookies = new Cookies();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Регулярное выражение для валидации кириллицы
+
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
@@ -20,26 +22,99 @@ const SignIn = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState(""); // For error messages
+
+  const [error, setError] = useState(""); // Для сообщений об ошибках
+  const [validationError, setValidationError] = useState({
+    name: "",
+    surname: "",
+    patronymic: "",
+  }); // Ошибки валидации полей
+
+  // Восстановление данных из localStorage при загрузке компонента
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("draftProfile");
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    }
+  }, []);
+
+  // Сохранение черновика в localStorage
+  const saveDraftToLocalStorage = (data) => {
+    localStorage.setItem("draftProfile", JSON.stringify(data));
+  };
+
+  // Функция для валидации пароля
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("Пароль должен содержать не менее 8 символов.");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Пароль должен содержать хотя бы одну заглавную букву.");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Пароль должен содержать хотя бы одну строчную букву.");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("Пароль должен содержать хотя бы одну цифру.");
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      errors.push(
+        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)."
+      );
+    }
+    return errors;
+  };
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
-    setProfile((prevProfile) => ({
-      ...prevProfile,
-      [name]: value,
-    }));
+
+    // Проверка для имени, фамилии и отчества
+    if (["name", "surname", "patronymic"].includes(name)) {
+      if (!cyrillicRegex.test(value)) {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]:
+            "Поле должно начинаться с заглавной буквы и содержать только кириллицу",
+        }));
+      } else {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]: "",
+        }));
+      }
+    }
+
+    const updatedProfile = { ...profile, [name]: value };
+    setProfile(updatedProfile);
+
+    // Сохранение обновленного черновика
+    saveDraftToLocalStorage(updatedProfile);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault(); // Предотвращаем перезагрузку страницы
 
-    // Validate that passwords match
+    // Проверка на ошибки валидации
+    if (Object.values(validationError).some((msg) => msg !== "")) {
+      setError("Пожалуйста, исправьте ошибки в форме.");
+      return;
+    }
+
+    // Проверка на совпадение паролей
     if (profile.password !== profile.confirmPassword) {
       setError("Пароли не совпадают");
       return;
     }
 
-    setError(""); // Clear any previous error messages
+    // Валидация пароля
+    const passwordErrors = validatePassword(profile.password);
+    if (passwordErrors.length > 0) {
+      setError(passwordErrors.join(" "));
+      return;
+    }
+
+    setError(""); // Очищаем предыдущие ошибки
 
     axios({
       method: "post",
@@ -49,13 +124,14 @@ const SignIn = () => {
         name: profile.name,
         surname: profile.surname,
         patronymic: profile.patronymic,
-        password: md5(profile.password), // Send only the password
+        password: md5(profile.password), // Отправляем только пароль
       },
     })
       .then(function (response) {
-        // Successful response, status will be 2xx
         console.log(response);
         if (response.status === 200) {
+          // Очищаем черновик после успешной регистрации
+          localStorage.removeItem("draftProfile");
           navigate("/auth");
         }
       })
@@ -67,8 +143,7 @@ const SignIn = () => {
         ) {
           navigate("/auth");
         } else {
-          // Handle other errors or network issues
-          console.error("An error occurred:", error);
+          console.error("Произошла ошибка:", error);
         }
       });
   };
@@ -86,7 +161,10 @@ const SignIn = () => {
           name="email"
           value={profile.email}
           onChange={HandleInput}
-          readOnly={profile.email}
+          readOnly={
+            cookies.get("email") ||
+            (emailRegex.test(cookies.get("login")) ? cookies.get("login") : "")
+          }
           required
         />
         <Input
@@ -97,6 +175,9 @@ const SignIn = () => {
           onChange={HandleInput}
           required
         />
+        {validationError.surname && (
+          <span className="text-red-600">{validationError.surname}</span>
+        )}
         <Input
           label="Имя"
           type="text"
@@ -105,6 +186,9 @@ const SignIn = () => {
           onChange={HandleInput}
           required
         />
+        {validationError.name && (
+          <span className="text-red-600">{validationError.name}</span>
+        )}
         <Input
           label="Отчество"
           type="text"
@@ -113,6 +197,9 @@ const SignIn = () => {
           onChange={HandleInput}
           required
         />
+        {validationError.patronymic && (
+          <span className="text-red-600">{validationError.patronymic}</span>
+        )}
         <Input
           label="Придумайте пароль"
           type="password"
@@ -129,8 +216,8 @@ const SignIn = () => {
           onChange={HandleInput}
           required
         />
-        {error && <span className="text-red-600">{error}</span>}{" "}
-        {/* Error message */}
+        {error && <span className="text-red-600">{error}</span>}
+        {/* Сообщение об ошибке */}
         <AcceptAll name="accept" />
         <button
           type="submit"

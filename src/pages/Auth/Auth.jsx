@@ -53,6 +53,7 @@ const Auth = () => {
       .catch(function (error) {
         if (error.response && error.response.status === 404) {
           // Обработка ошибки 404
+          alert("Данного аккаунта не существует, зарегистрируйтесь");
           cookies.set("login", profile.login, { path: "/" });
           navigate("/signin");
         } else {

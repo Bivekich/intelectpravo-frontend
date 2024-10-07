@@ -8,7 +8,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [confirmed, setConfirmed] = useState(false);
-  const [status, setStatus] = useState("Не подтвержден");
+  const [status, setStatus] = useState("Не зарегистрирован");
   const [headerVisible, setHeaderVisible] = useState(true); // состояние для видимости заголовка
 
   const checkToken = () => {
@@ -24,6 +24,14 @@ const Header = () => {
       }
       setHeaderVisible(false); // Скрыть заголовок, если токен отсутствует
     } else {
+      if (
+        location.pathname === "/auth" &&
+        location.pathname === "/signin" &&
+        location.pathname === "/loginbypass" &&
+        location.pathname === "/signup"
+      ) {
+        navigate("/", { replace: true });
+      }
       // Если токен есть, загружаем данные профиля
       axios({
         method: "get",
@@ -39,6 +47,8 @@ const Header = () => {
               setStatus("Администратор");
             } else if (response.data.isConfirmed) {
               setStatus("Подтвержден");
+            } else if (!response.data.isConfirmed) {
+              setStatus("Не подтвержден");
             }
           }
         })
@@ -67,10 +77,6 @@ const Header = () => {
     };
   }, [location.pathname, navigate]);
 
-  if (!headerVisible) {
-    return null; // Пока идет загрузка, ничего не рендерим
-  }
-
   return (
     <>
       <header className="flex flex-col gap-3 mb-3 w-full self-start">
@@ -78,38 +84,42 @@ const Header = () => {
           <span>IntelectPravo</span>
           <span>{status}</span>
         </div>
-        <div className="flex flex-row flex-wrap w-full gap-3 w-fit mx-auto justify-center">
-          {confirmed && (
-            <>
-              <a
-                className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-                href="/sell"
-              >
-                Продать
-              </a>
-              <a
-                className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-                href="/buy"
-              >
-                Купить
-              </a>
-            </>
-          )}
-          <a
-            className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-            href="/profile"
-          >
-            Профиль
-          </a>
-          {confirmed && (
+        {headerVisible ? (
+          <div className="flex flex-row flex-wrap w-full gap-3 w-fit mx-auto justify-center">
+            {confirmed && (
+              <>
+                <a
+                  className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
+                  href="/sell"
+                >
+                  Продать
+                </a>
+                <a
+                  className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
+                  href="/buy"
+                >
+                  Купить
+                </a>
+              </>
+            )}
             <a
               className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
-              href="/files"
+              href="/profile"
             >
-              Файлы
+              Профиль
             </a>
-          )}
-        </div>
+            {confirmed && (
+              <a
+                className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105"
+                href="/files"
+              >
+                Файлы
+              </a>
+            )}
+          </div>
+        ) : (
+          ""
+        )}
         {/* {confirmed && (
           <div className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105">
             Профиль подтвержден

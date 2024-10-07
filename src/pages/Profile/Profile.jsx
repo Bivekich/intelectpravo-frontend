@@ -6,12 +6,11 @@ import React, { useState, useEffect } from "react";
 
 const Profile = () => {
   const cookies = new Cookies();
-  // Время жизни данных в миллисекундах (5 минут = 300000 мс)
-  const EXPIRATION_TIME = 300000; // 5 минут
   const token = cookies.get("token");
   const navigate = useNavigate();
   const [message, setMessage] = useState(""); // Initialize state with an empty string
   const [confirmed, setConfirmed] = useState(false);
+  const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Regular expression for Cyrillic validation
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
@@ -27,6 +26,12 @@ const Profile = () => {
     documentPhoto: null,
   });
 
+  const [validationError, setValidationError] = useState({
+    name: "",
+    surname: "",
+    patronymic: "",
+  }); // Validation errors
+
   useEffect(() => {
     // Fetch profile data on component mount
     axios({
@@ -37,7 +42,6 @@ const Profile = () => {
       },
     })
       .then((response) => {
-        console.log(response);
         setProfile(response.data);
         setMessage(
           response.data.isConfirmed
@@ -53,19 +57,40 @@ const Profile = () => {
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
-    const updatedProfile = {
-      ...profile,
+
+    // Validate name, surname, and patronymic fields
+    if (["name", "surname", "patronymic"].includes(name)) {
+      if (!cyrillicRegex.test(value)) {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]:
+            "Поле должно начинаться с заглавной буквы и содержать только кириллицу",
+        }));
+      } else {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]: "",
+        }));
+      }
+    }
+
+    setProfile((prevProfile) => ({
+      ...prevProfile,
       [name]: value,
-    };
-    setProfile(updatedProfile);
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
 
+    // Check for validation errors
+    if (Object.values(validationError).some((msg) => msg !== "")) {
+      setMessage("Пожалуйста, исправьте ошибки в форме.");
+      return;
+    }
+
     // Prepare data for the update request
     const { documentPhoto, ...profileData } = profile;
-    console.log(profileData);
 
     try {
       // Submit profile data
@@ -78,12 +103,8 @@ const Profile = () => {
           },
         }
       );
-      console.log(response);
       cookies.remove("token", { path: "/" });
-
-      // Redirect to the homepage
-      navigate("/"); // This will redirect the user to the homepage
-      // Optionally navigate or show a success message here
+      navigate("/");
     } catch (error) {
       console.log(error);
     }
@@ -93,7 +114,6 @@ const Profile = () => {
     cookies.remove("email", { path: "/" });
     cookies.remove("token", { path: "/" });
     navigate("/");
-    console.log("User logged out. Cookie removed.");
   };
 
   return (
@@ -111,6 +131,9 @@ const Profile = () => {
         onChange={HandleInput}
         required
       />
+      {validationError.surname && (
+        <span className="text-red-600">{validationError.surname}</span>
+      )}
       <Input
         label="Имя"
         type="text"
@@ -119,6 +142,9 @@ const Profile = () => {
         onChange={HandleInput}
         required
       />
+      {validationError.name && (
+        <span className="text-red-600">{validationError.name}</span>
+      )}
       <Input
         label="Отчество"
         type="text"
@@ -126,6 +152,10 @@ const Profile = () => {
         value={profile.patronymic || ""}
         onChange={HandleInput}
       />
+      {validationError.patronymic && (
+        <span className="text-red-600">{validationError.patronymic}</span>
+      )}
+
       {/* Add more Input components here for other profile fields */}
 
       <a
@@ -152,6 +182,7 @@ const Profile = () => {
       >
         Изменить почту
       </a>
+
       {message && <span>{message}</span>}
 
       <button
@@ -160,6 +191,7 @@ const Profile = () => {
       >
         Сохранить изменения
       </button>
+
       <a
         href="/"
         className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"

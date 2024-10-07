@@ -4,6 +4,7 @@ import Cookies from "universal-cookie";
 import axios from "axios";
 import AcceptAll from "../../components/AcceptAll";
 import { useNavigate } from "react-router-dom";
+
 // Время жизни данных в миллисекундах (5 минут = 300000 мс)
 const EXPIRATION_TIME = 300000; // 5 минут
 
@@ -34,6 +35,7 @@ const Confirm = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [error, setError] = useState(""); // Для вывода ошибок (например, превышение размера файла)
+  const [validationErrors, setValidationErrors] = useState({});
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
@@ -44,7 +46,7 @@ const Confirm = () => {
     passportSeries: "",
     passportNumber: "",
     passportCode: "",
-    address: "", // Объединенный адрес
+    address: "",
     passportIssuedDate: "",
     passportIssuedBy: "",
     documentPhoto: null,
@@ -76,6 +78,66 @@ const Confirm = () => {
         });
     }
   }, [token]);
+
+  const validateForm = () => {
+    const errors = {};
+    const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
+    const phoneRegex = /^\+7\d{10}$/;
+
+    // Validate each field
+    if (!profile.surname || !cyrillicRegex.test(profile.surname)) {
+      errors.surname =
+        "Фамилия должна быть на кириллице и начинаться с заглавной буквы";
+    }
+
+    if (!profile.name || !cyrillicRegex.test(profile.name)) {
+      errors.name =
+        "Имя должно быть на кириллице и начинаться с заглавной буквы";
+    }
+
+    if (profile.patronymic && !cyrillicRegex.test(profile.patronymic)) {
+      errors.patronymic =
+        "Отчество должно быть на кириллице и начинаться с заглавной буквы";
+    }
+
+    if (!phoneRegex.test(profile.phoneNumber)) {
+      errors.phoneNumber = "Номер телефона должен быть в формате +7XXXXXXXXXX";
+    }
+
+    if (!profile.address) {
+      errors.address = "Адрес обязателен для заполнения";
+    }
+
+    if (!profile.passportSeries || profile.passportSeries.length !== 4) {
+      errors.passportSeries = "Серия паспорта должна содержать 4 цифры";
+    }
+
+    if (!profile.passportNumber || profile.passportNumber.length !== 6) {
+      errors.passportNumber = "Номер паспорта должен содержать 6 цифр";
+    }
+
+    if (!profile.passportCode || profile.passportCode.length !== 6) {
+      errors.passportCode = "Код подразделения должен содержать 6 цифр";
+    }
+
+    if (!profile.birthDate) {
+      errors.birthDate = "Дата рождения обязательна";
+    }
+
+    if (!profile.passportIssuedDate) {
+      errors.passportIssuedDate = "Дата выдачи паспорта обязательна";
+    }
+
+    if (!profile.passportIssuedBy) {
+      errors.passportIssuedBy = "Информация о выдаче паспорта обязательна";
+    }
+
+    if (!profile.documentPhoto) {
+      errors.documentPhoto = "Загрузка фотографии документа обязательна";
+    }
+
+    return errors;
+  };
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
@@ -123,6 +185,14 @@ const Confirm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors(validationErrors);
+      setMessage("Пожалуйста, исправьте ошибки в форме.");
+      return;
+    }
+
     const { documentPhoto, ...profileData } = profile;
 
     try {
@@ -176,6 +246,7 @@ const Confirm = () => {
       className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[600px] w-full"
     >
       <h3 className="font-semibold text-xl">Подтверждение профиля</h3>
+
       <Input
         label="Фамилия"
         type="text"
@@ -184,6 +255,10 @@ const Confirm = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.surname && (
+        <span className="text-red-600">{validationErrors.surname}</span>
+      )}
+
       <Input
         label="Имя"
         type="text"
@@ -192,6 +267,10 @@ const Confirm = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.name && (
+        <span className="text-red-600">{validationErrors.name}</span>
+      )}
+
       <Input
         label="Отчество"
         type="text"
@@ -199,6 +278,10 @@ const Confirm = () => {
         value={profile.patronymic || ""}
         onChange={HandleInput}
       />
+      {validationErrors.patronymic && (
+        <span className="text-red-600">{validationErrors.patronymic}</span>
+      )}
+
       <Input
         label="Номер телефона"
         type="text"
@@ -206,9 +289,12 @@ const Confirm = () => {
         value={profile.phoneNumber || ""}
         onChange={handlePhoneChange}
         required
-        placeholder="+7XXXXXXXXXX" // Подсказка для пользователя
+        placeholder="+7XXXXXXXXXX"
       />
-      <label htmlFor="">Адрес (Индекс, Город, Улица, Дом, Квартира)</label>
+      {validationErrors.phoneNumber && (
+        <span className="text-red-600">{validationErrors.phoneNumber}</span>
+      )}
+
       <Input
         label="Адрес"
         type="text"
@@ -216,8 +302,12 @@ const Confirm = () => {
         value={profile.address || ""}
         onChange={HandleInput}
         required
-        placeholder="Например: 123456, Город, Улица, 10, 5" // Подсказка для пользователя
+        placeholder="Например: 123456, Город, Улица, 10, 5"
       />
+      {validationErrors.address && (
+        <span className="text-red-600">{validationErrors.address}</span>
+      )}
+
       <Input
         label="Дата рождения"
         type="date"
@@ -226,6 +316,10 @@ const Confirm = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.birthDate && (
+        <span className="text-red-600">{validationErrors.birthDate}</span>
+      )}
+
       <Input
         label="Серия паспорта"
         type="text"
@@ -234,6 +328,10 @@ const Confirm = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.passportSeries && (
+        <span className="text-red-600">{validationErrors.passportSeries}</span>
+      )}
+
       <Input
         label="Номер паспорта"
         type="text"
@@ -242,6 +340,10 @@ const Confirm = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.passportNumber && (
+        <span className="text-red-600">{validationErrors.passportNumber}</span>
+      )}
+
       <Input
         label="Код подразделения"
         type="text"
@@ -250,6 +352,10 @@ const Confirm = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.passportCode && (
+        <span className="text-red-600">{validationErrors.passportCode}</span>
+      )}
+
       <Input
         label="Когда выдан"
         type="date"
@@ -257,6 +363,12 @@ const Confirm = () => {
         value={formatDateForInput(profile.passportIssuedDate) || ""}
         onChange={HandleInput}
       />
+      {validationErrors.passportIssuedDate && (
+        <span className="text-red-600">
+          {validationErrors.passportIssuedDate}
+        </span>
+      )}
+
       <Input
         label="Кем выдан"
         type="text"
@@ -264,6 +376,12 @@ const Confirm = () => {
         value={profile.passportIssuedBy || ""}
         onChange={HandleInput}
       />
+      {validationErrors.passportIssuedBy && (
+        <span className="text-red-600">
+          {validationErrors.passportIssuedBy}
+        </span>
+      )}
+
       {profile.documentPhoto && (
         <div className="flex flex-col gap-3">
           {typeof profile.documentPhoto === "string" ? (
@@ -290,10 +408,14 @@ const Confirm = () => {
           required
         />
       )}
+      {validationErrors.documentPhoto && (
+        <span className="text-red-600">{validationErrors.documentPhoto}</span>
+      )}
+
       <AcceptAll name="accept" />
-      {error && <span className="text-red-600">{error}</span>}{" "}
-      {/* Вывод ошибки */}
+      {error && <span className="text-red-600">{error}</span>}
       {message && <span>{message}</span>}
+
       <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white p-2 transition hover:scale-105"

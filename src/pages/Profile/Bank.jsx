@@ -4,7 +4,7 @@ import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AcceptAll from "../../components/AcceptAll";
-// Время жизни данных в миллисекундах (5 минут = 300000 мс)
+
 const EXPIRATION_TIME = 300000; // 5 минут
 
 // Функция для сохранения данных в localStorage с текущим временем
@@ -32,6 +32,33 @@ const getFromLocalStorage = (key) => {
   return value;
 };
 
+// Функция для валидации полей
+const validatePayments = (payments) => {
+  const errors = {};
+
+  // Валидация номера карты (должен содержать 16 цифр)
+  if (!/^\d{16}$/.test(payments.cardNumber)) {
+    errors.cardNumber = "Номер карты должен содержать 16 цифр.";
+  }
+
+  // Валидация расчетного счета (обычно 20 цифр)
+  if (!/^\d{20}$/.test(payments.accountNumber)) {
+    errors.accountNumber = "Расчетный счет должен содержать 20 цифр.";
+  }
+
+  // Валидация корреспондентского счета (обычно 20 цифр)
+  if (!/^\d{20}$/.test(payments.corrAccount)) {
+    errors.corrAccount = "Корреспондентский счет должен содержать 20 цифр.";
+  }
+
+  // Валидация БИК (обычно 9 цифр)
+  if (!/^\d{9}$/.test(payments.bic)) {
+    errors.bic = "БИК должен содержать 9 цифр.";
+  }
+
+  return errors;
+};
+
 const Bank = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
@@ -43,6 +70,7 @@ const Bank = () => {
     corrAccount: "",
     bic: "",
   });
+  const [validationErrors, setValidationErrors] = useState({});
 
   // При загрузке проверяем, есть ли черновик в localStorage
   useEffect(() => {
@@ -59,7 +87,6 @@ const Bank = () => {
         },
       })
         .then((response) => {
-          console.log(response);
           setPayments(response.data);
         })
         .catch((error) => {
@@ -81,6 +108,13 @@ const Bank = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
 
+    // Проверяем данные перед отправкой
+    const errors = validatePayments(payments);
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return; // Если есть ошибки, форма не отправляется
+    }
+
     try {
       // Submit bank details data
       const response = await axios.post(
@@ -92,7 +126,6 @@ const Bank = () => {
           },
         }
       );
-      console.log(response);
 
       const response_ = await axios.post(
         "https://api.intelectpravo.ru/profile/confirm",
@@ -103,16 +136,15 @@ const Bank = () => {
           },
         }
       );
-      console.log(response_);
 
       if (response_.data) {
         // Remove token from cookies
         cookies.remove("token", { path: "/" });
 
         // Redirect to the homepage
-        navigate("/"); // This will redirect the user to the homepage
+        navigate("/");
 
-        // Optionally, you can set a success message
+        // Set success message
         setMessage(response_.data.message);
 
         // Remove draft after successful submission
@@ -139,6 +171,10 @@ const Bank = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.cardNumber && (
+        <span className="text-red-600">{validationErrors.cardNumber}</span>
+      )}
+
       <Input
         label="РАСЧЕТНЫЙ СЧЁТ"
         type="text"
@@ -147,6 +183,10 @@ const Bank = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.accountNumber && (
+        <span className="text-red-600">{validationErrors.accountNumber}</span>
+      )}
+
       <Input
         label="КОРРЕСПОНДЕТСКИЙ СЧЁТ"
         type="text"
@@ -155,6 +195,10 @@ const Bank = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.corrAccount && (
+        <span className="text-red-600">{validationErrors.corrAccount}</span>
+      )}
+
       <Input
         label="БИК БАНКА"
         type="text"
@@ -163,6 +207,10 @@ const Bank = () => {
         onChange={HandleInput}
         required
       />
+      {validationErrors.bic && (
+        <span className="text-red-600">{validationErrors.bic}</span>
+      )}
+
       <AcceptAll name="accept" />
       {message !== "" && <span>{message}</span>}
       <button
