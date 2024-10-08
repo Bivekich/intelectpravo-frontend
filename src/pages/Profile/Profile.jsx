@@ -139,10 +139,10 @@ const Profile = () => {
     >
       <h3 className="font-semibold text-xl">Профиль пользователя</h3>
       <Input
-        label="Email"
-        type="email"
-        name="email"
-        value={profile.email}
+        label="Логин"
+        type="text"
+        name="login"
+        value={profile.isConfirmed ? cookies.get("login") : profile.phoneNumber}
         onChange={handleInput}
         required
         readOnly
@@ -215,12 +215,12 @@ const Profile = () => {
 
       {message && <span>{message}</span>}
 
-      <button
+      {/* <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
       >
         Сохранить изменения
-      </button>
+      </button> */}
 
       <a
         href="/"

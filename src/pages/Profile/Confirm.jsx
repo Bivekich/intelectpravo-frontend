@@ -83,6 +83,13 @@ const Confirm = () => {
     const errors = {};
     const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
     const phoneRegex = /^\+7\d{10}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const minYear = 1900;
+
+    const validateYear = (dateStr) => {
+      const year = new Date(dateStr).getFullYear();
+      return year >= minYear;
+    };
 
     // Validate each field
     if (!profile.surname || !cyrillicRegex.test(profile.surname)) {
@@ -122,10 +129,14 @@ const Confirm = () => {
 
     if (!profile.birthDate) {
       errors.birthDate = "Дата рождения обязательна";
+    } else if (!validateYear(profile.birthDate)) {
+      errors.birthDate = `Год рождения должен быть не ранее ${minYear}`;
     }
 
     if (!profile.passportIssuedDate) {
       errors.passportIssuedDate = "Дата выдачи паспорта обязательна";
+    } else if (!validateYear(profile.passportIssuedDate)) {
+      errors.passportIssuedDate = `Дата выдачи паспорта должна быть не ранее ${minYear}`;
     }
 
     if (!profile.passportIssuedBy) {
@@ -134,6 +145,10 @@ const Confirm = () => {
 
     if (!profile.documentPhoto) {
       errors.documentPhoto = "Загрузка фотографии документа обязательна";
+    }
+
+    if (!profile.email || !emailRegex.test(profile.email)) {
+      errors.email = "Некорректный формат email";
     }
 
     return errors;
@@ -246,6 +261,19 @@ const Confirm = () => {
       className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[600px] w-full"
     >
       <h3 className="font-semibold text-xl">Подтверждение профиля</h3>
+
+      <Input
+        label="Email"
+        type="email"
+        name="email"
+        value={profile.email}
+        onChange={HandleInput}
+        required
+        readOnly
+      />
+      {validationErrors.email && (
+        <span className="text-red-600">{validationErrors.email}</span>
+      )}
 
       <Input
         label="Фамилия"
