@@ -9,16 +9,16 @@ import md5 from "md5";
 const SignIn = () => {
   const navigate = useNavigate();
   const cookies = new Cookies();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/; // Регулярное выражение для валидации телефона
   const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Регулярное выражение для валидации кириллицы
 
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
     patronymic: "",
-    email:
-      cookies.get("email") ||
-      (emailRegex.test(cookies.get("login")) ? cookies.get("login") : ""),
+    phone:
+      cookies.get("phone") ||
+      (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : ""),
     password: "",
     confirmPassword: "",
   });
@@ -120,7 +120,7 @@ const SignIn = () => {
       method: "post",
       url: "https://api.intelectpravo.ru/auth/register",
       data: {
-        email: profile.email,
+        phone: profile.phone, // Изменено на phone
         name: profile.name,
         surname: profile.surname,
         patronymic: profile.patronymic,
@@ -156,14 +156,14 @@ const SignIn = () => {
       >
         <h3 className="font-semibold text-xl">Регистрация</h3>
         <Input
-          label="Email"
-          type="email"
-          name="email"
-          value={profile.email}
+          label="Телефон" // Изменено на "Телефон"
+          type="tel" // Изменен тип на "tel"
+          name="phone" // Изменено на "phone"
+          value={profile.phone} // Изменено на "phone"
           onChange={HandleInput}
           readOnly={
-            cookies.get("email") ||
-            (emailRegex.test(cookies.get("login")) ? cookies.get("login") : "")
+            cookies.get("phone") ||
+            (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : "")
           }
           required
         />

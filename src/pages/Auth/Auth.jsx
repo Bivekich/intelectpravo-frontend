@@ -46,7 +46,7 @@ const Auth = () => {
         // Успешный ответ
         console.log(response);
         if (response.status === 200) {
-          cookies.set("email", response.data.email, { path: "/" });
+          cookies.set("phone", response.data.phone, { path: "/" });
           navigate("/loginbypass");
         }
       })

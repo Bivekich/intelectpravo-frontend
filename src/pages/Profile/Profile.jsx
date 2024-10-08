@@ -8,9 +8,12 @@ const Profile = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
   const navigate = useNavigate();
-  const [message, setMessage] = useState(""); // Initialize state with an empty string
+  const [message, setMessage] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-  const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Regular expression for Cyrillic validation
+
+  const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Регулярное выражение для проверки кириллицы
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Регулярное выражение для проверки email
+
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
@@ -30,10 +33,10 @@ const Profile = () => {
     name: "",
     surname: "",
     patronymic: "",
-  }); // Validation errors
+    email: "", // Добавлено для email
+  });
 
   useEffect(() => {
-    // Fetch profile data on component mount
     axios({
       method: "get",
       url: "https://api.intelectpravo.ru/profile/basic",
@@ -55,10 +58,10 @@ const Profile = () => {
       });
   }, [token]);
 
-  const HandleInput = (e) => {
+  const handleInput = (e) => {
     const { name, value } = e.target;
 
-    // Validate name, surname, and patronymic fields
+    // Валидация полей name, surname, patronymic на кириллицу
     if (["name", "surname", "patronymic"].includes(name)) {
       if (!cyrillicRegex.test(value)) {
         setValidationError((prevErrors) => ({
@@ -74,6 +77,21 @@ const Profile = () => {
       }
     }
 
+    // Валидация email
+    if (name === "email") {
+      if (!emailRegex.test(value)) {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          email: "Некорректный формат email",
+        }));
+      } else {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          email: "",
+        }));
+      }
+    }
+
     setProfile((prevProfile) => ({
       ...prevProfile,
       [name]: value,
@@ -81,19 +99,17 @@ const Profile = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
 
-    // Check for validation errors
+    // Проверка на ошибки валидации
     if (Object.values(validationError).some((msg) => msg !== "")) {
       setMessage("Пожалуйста, исправьте ошибки в форме.");
       return;
     }
 
-    // Prepare data for the update request
     const { documentPhoto, ...profileData } = profile;
 
     try {
-      // Submit profile data
       const response = await axios.post(
         "https://api.intelectpravo.ru/profile/update",
         profileData,
@@ -122,14 +138,26 @@ const Profile = () => {
       className="flex flex-col gap-5 px-10 mx-auto py-5 border-2 rounded-2xl max-w-[400px] w-full"
     >
       <h3 className="font-semibold text-xl">Профиль пользователя</h3>
-
+      <Input
+        label="Email"
+        type="email"
+        name="email"
+        value={profile.email}
+        onChange={handleInput}
+        required
+        readOnly
+      />
+      {validationError.email && (
+        <span className="text-red-600">{validationError.email}</span>
+      )}
       <Input
         label="Фамилия"
         type="text"
         name="surname"
         value={profile.surname || ""}
-        onChange={HandleInput}
+        onChange={handleInput}
         required
+        readOnly
       />
       {validationError.surname && (
         <span className="text-red-600">{validationError.surname}</span>
@@ -139,8 +167,9 @@ const Profile = () => {
         type="text"
         name="name"
         value={profile.name || ""}
-        onChange={HandleInput}
+        onChange={handleInput}
         required
+        readOnly
       />
       {validationError.name && (
         <span className="text-red-600">{validationError.name}</span>
@@ -150,13 +179,14 @@ const Profile = () => {
         type="text"
         name="patronymic"
         value={profile.patronymic || ""}
-        onChange={HandleInput}
+        onChange={handleInput}
+        readOnly
       />
       {validationError.patronymic && (
         <span className="text-red-600">{validationError.patronymic}</span>
       )}
 
-      {/* Add more Input components here for other profile fields */}
+      {/* Другие поля профиля */}
 
       <a
         href="/profile/confirm"
@@ -176,12 +206,12 @@ const Profile = () => {
       >
         Изменить пароль
       </a>
-      <a
+      {/* <a
         href="/profile/changemail"
         className="rounded-xl p-2 border-2 border-[#e5e7eb] text-gray-500 transition hover:scale-105 hover:text-gray-500"
       >
         Изменить почту
-      </a>
+      </a> */}
 
       {message && <span>{message}</span>}
 

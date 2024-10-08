@@ -8,7 +8,7 @@ const SignUp = () => {
   const cookies = new Cookies();
   const [code, setCode] = useState(""); // Initialize state with an empty string
   const [message, setMessage] = useState(""); // Initialize state with an empty string
-  const email = cookies.get("email");
+  const phone = cookies.get("phone");
   const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
@@ -18,7 +18,7 @@ const SignUp = () => {
       const response = await axios.post(
         "https://api.intelectpravo.ru/auth/verify",
         {
-          email: email,
+          phoneNumber: phone,
           code: code,
         }
       );
@@ -51,7 +51,7 @@ const SignUp = () => {
       className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
     >
       <h3 className="font-semibold text-xl">
-        Введите код подтверждения, который был отправлен Вам на почту: {email}
+        Введите код подтверждения, который был отправлен Вам на телефон: {phone}
       </h3>
       {message != "" && <span>{message}</span>}
       <Input

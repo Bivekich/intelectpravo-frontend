@@ -9,7 +9,7 @@ const LogInByPass = () => {
   const cookies = new Cookies();
   const [password, setPassword] = useState(""); // Initialize state with an empty string for password
   const [message, setMessage] = useState(""); // Initialize state with an empty string for message
-  const email = cookies.get("email");
+  const phone = cookies.get("phone");
   const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
@@ -19,7 +19,7 @@ const LogInByPass = () => {
       const response = await axios.post(
         "https://api.intelectpravo.ru/auth/loginByPass",
         {
-          email: email,
+          phoneNumber: phone,
           password: md5(password),
         }
       );
@@ -44,7 +44,7 @@ const LogInByPass = () => {
       className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
     >
       <h3 className="font-semibold text-xl">
-        Вход с использованием электронной почты: {email}
+        Вход с использованием телефона: {phone}
       </h3>
       {message && <span>{message}</span>}
       <Input
