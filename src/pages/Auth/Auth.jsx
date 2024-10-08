@@ -22,7 +22,7 @@ const Auth = () => {
 
   const validateLogin = (login) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+?[0-9\s-()]{10,15}$/;
+    const phoneRegex = /^\+7[0-9\s-()]{9,14}$/;
     return emailRegex.test(login) || phoneRegex.test(login);
   };
 
@@ -31,7 +31,9 @@ const Auth = () => {
 
     // Валидация поля login
     if (!validateLogin(profile.login)) {
-      setErrorMessage("Введите корректный email или номер телефона.");
+      setErrorMessage(
+        "Введите корректный email или номер телефона (Должен начинаться с +7)."
+      );
       return;
     }
 
