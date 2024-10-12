@@ -143,7 +143,7 @@ const SignIn = () => {
 
     axios({
       method: "post",
-      url: "http://localhost:3000/auth/register",
+      url: "https://api.intelectpravo.ru/auth/register",
       data: {
         phone: profile.phone,
         name: profile.name,

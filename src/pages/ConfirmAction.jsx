@@ -29,7 +29,7 @@ const ConfirmAction = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/profile/check-verify",
+        "https://api.intelectpravo.ru/profile/check-verify",
         {
           phoneNumber: phone,
           code: code,
@@ -49,7 +49,7 @@ const ConfirmAction = () => {
         if (action === "updateprofile") {
           const profileData = JSON.parse(localStorage.getItem("profileData"));
           const updateResponse = await axios.post(
-            "http://localhost:3000/profile/update",
+            "https://api.intelectpravo.ru/profile/update",
             profileData,
             {
               headers: {
@@ -69,7 +69,7 @@ const ConfirmAction = () => {
             formData.append("documentPhoto", blob, "document.jpg"); // Append Blob to FormData
 
             const huy = await axios.post(
-              "http://localhost:3000/profile/upload-photo",
+              "https://api.intelectpravo.ru/profile/upload-photo",
               formData,
               {
                 headers: {
@@ -88,7 +88,7 @@ const ConfirmAction = () => {
         } else if (action == "updatebank") {
           const payments = JSON.parse(localStorage.getItem("paymentsData"));
           const response = await axios.post(
-            "http://localhost:3000/profile/bank-details",
+            "https://api.intelectpravo.ru/profile/bank-details",
             payments,
             {
               headers: {

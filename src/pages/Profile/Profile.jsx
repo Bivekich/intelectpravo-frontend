@@ -39,7 +39,7 @@ const Profile = () => {
   useEffect(() => {
     axios({
       method: "get",
-      url: "http://localhost:3000/profile/basic",
+      url: "https://api.intelectpravo.ru/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -111,7 +111,7 @@ const Profile = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/profile/update",
+        "https://api.intelectpravo.ru/profile/update",
         profileData,
         {
           headers: {

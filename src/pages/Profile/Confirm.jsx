@@ -71,7 +71,7 @@ const Confirm = () => {
     } else {
       axios({
         method: "get",
-        url: "http://localhost:3000/profile/basic",
+        url: "https://api.intelectpravo.ru/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -267,7 +267,7 @@ const Confirm = () => {
       cookies.set("phone", profile.phoneNumber, { path: "/" });
       console.log("Phone number being sent:", profile.phoneNumber);
       const response = await axios.post(
-        "http://localhost:3000/profile/verify-action",
+        "https://api.intelectpravo.ru/profile/verify-action",
         { phoneNumber: profile.phoneNumber },
         {
           headers: {

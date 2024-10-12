@@ -66,7 +66,7 @@ const Password = () => {
     try {
       const token = cookies.get("token");
       const response = await axios.post(
-        "http://localhost:3000/profile/change-password", // Измените URL на свой
+        "https://api.intelectpravo.ru/profile/change-password", // Измените URL на свой
         {
           currentPassword: md5(passwordData.currentPassword),
           newPassword: md5(passwordData.newPassword),
