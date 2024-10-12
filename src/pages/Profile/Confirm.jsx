@@ -19,15 +19,26 @@ const saveToLocalStorage = (key, value) => {
 
 const getFromLocalStorage = (key) => {
   const storedData = localStorage.getItem(key);
+
+  // Return null if there's no data
   if (!storedData) return null;
 
-  const { value, expiration } = JSON.parse(storedData);
-  if (Date.now() > expiration) {
-    localStorage.removeItem(key);
+  try {
+    // Parse the stored data
+    const { value, expiration } = JSON.parse(storedData);
+
+    // Check for expiration
+    if (Date.now() > expiration) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    return value;
+  } catch (error) {
+    console.error(`Error parsing localStorage data for key "${key}":`, error);
+    localStorage.removeItem(key); // Optionally, remove invalid data
     return null;
   }
-
-  return value;
 };
 
 const Confirm = () => {
@@ -60,7 +71,7 @@ const Confirm = () => {
     } else {
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        url: "http://localhost:3000/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -88,7 +99,7 @@ const Confirm = () => {
 
     const validateYear = (dateStr) => {
       const year = new Date(dateStr).getFullYear();
-      return year >= minYear;
+      return year >= minYear && new Date(dateStr) <= new Date(); // Проверка на будущее
     };
 
     // Validate each field
@@ -123,20 +134,20 @@ const Confirm = () => {
       errors.passportNumber = "Номер паспорта должен содержать 6 цифр";
     }
 
-    if (!profile.passportCode || profile.passportCode.length !== 6) {
+    if (!profile.passportCode || profile.passportCode.length !== 7) {
       errors.passportCode = "Код подразделения должен содержать 6 цифр";
     }
 
     if (!profile.birthDate) {
       errors.birthDate = "Дата рождения обязательна";
     } else if (!validateYear(profile.birthDate)) {
-      errors.birthDate = `Год рождения должен быть не ранее ${minYear}`;
+      errors.birthDate = `Год рождения должен быть не ранее ${minYear} и не в будущем.`;
     }
 
     if (!profile.passportIssuedDate) {
       errors.passportIssuedDate = "Дата выдачи паспорта обязательна";
     } else if (!validateYear(profile.passportIssuedDate)) {
-      errors.passportIssuedDate = `Дата выдачи паспорта должна быть не ранее ${minYear}`;
+      errors.passportIssuedDate = `Дата выдачи паспорта должна быть не ранее ${minYear} и не в будущем.`;
     }
 
     if (!profile.passportIssuedBy) {
@@ -154,12 +165,41 @@ const Confirm = () => {
     return errors;
   };
 
+  const handleNumericInput = (e) => {
+    const { name, value } = e.target;
+    const numericValue = value.replace(/\D/g, ""); // Убираем все, кроме цифр
+
+    setProfile((prevProfile) => ({
+      ...prevProfile,
+      [name]: numericValue,
+    }));
+  };
+  const handleNumericInputCode = (e) => {
+    const { name, value } = e.target;
+    const numericValue = value.replace(/[^\d-]/g, ""); // Убираем все, кроме цифр
+
+    setProfile((prevProfile) => ({
+      ...prevProfile,
+      [name]: numericValue,
+    }));
+  };
+
   const HandleInput = (e) => {
     const { name, value } = e.target;
+
+    // Check if the input value length exceeds 50 characters
+    let limitedValue;
+    if (name == "address") {
+      limitedValue = value.length > 50 ? value.slice(0, 50) : value;
+    } else {
+      limitedValue = value.length > 22 ? value.slice(0, 22) : value;
+    }
+
     const updatedProfile = {
       ...profile,
-      [name]: value,
+      [name]: limitedValue,
     };
+
     setProfile(updatedProfile);
     saveToLocalStorage("profileData", updatedProfile);
   };
@@ -211,41 +251,36 @@ const Confirm = () => {
     const { documentPhoto, ...profileData } = profile;
 
     try {
-      const response_ = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
-        profileData,
+      // If documentPhoto is an object (likely a file), convert it to a string format for localStorage
+      if (typeof documentPhoto === "object") {
+        const reader = new FileReader();
+        reader.readAsDataURL(documentPhoto);
+        reader.onloadend = () => {
+          localStorage.setItem("documentPhoto", reader.result);
+        };
+      }
+
+      // Store the rest of the profile data
+      localStorage.setItem("profileData", JSON.stringify(profileData));
+
+      // Set phone number in cookies
+      cookies.set("phone", profile.phoneNumber, { path: "/" });
+      console.log("Phone number being sent:", profile.phoneNumber);
+      const response = await axios.post(
+        "http://localhost:3000/profile/verify-action",
+        { phoneNumber: profile.phoneNumber },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
-
-      if (typeof profile.documentPhoto === "object") {
-        setMessage(response_.data.message);
-        const formData = new FormData();
-        formData.append("documentPhoto", documentPhoto);
-
-        const fileResponse = await axios.post(
-          "https://api.intelectpravo.ru/profile/upload-photo",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        console.log(fileResponse);
-
-        cookies.remove("token", { path: "/" });
-
-        // Redirect to the homepage
-        navigate("/"); // This will redirect the user to the homepage
-      }
+      console.log("Response:", response.data);
+      // Navigate to confirmation page
+      navigate("/profile/confirmaction/updateprofile");
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -269,7 +304,6 @@ const Confirm = () => {
         value={profile.email}
         onChange={HandleInput}
         required
-        readOnly
       />
       {validationErrors.email && (
         <span className="text-red-600">{validationErrors.email}</span>
@@ -353,7 +387,7 @@ const Confirm = () => {
         type="text"
         name="passportSeries"
         value={profile.passportSeries || ""}
-        onChange={HandleInput}
+        onChange={handleNumericInput} // Изменение обработчика
         required
       />
       {validationErrors.passportSeries && (
@@ -365,7 +399,7 @@ const Confirm = () => {
         type="text"
         name="passportNumber"
         value={profile.passportNumber || ""}
-        onChange={HandleInput}
+        onChange={handleNumericInput} // Изменение обработчика
         required
       />
       {validationErrors.passportNumber && (
@@ -377,7 +411,7 @@ const Confirm = () => {
         type="text"
         name="passportCode"
         value={profile.passportCode || ""}
-        onChange={HandleInput}
+        onChange={handleNumericInputCode} // Изменение обработчика
         required
       />
       {validationErrors.passportCode && (

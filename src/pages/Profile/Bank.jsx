@@ -62,6 +62,7 @@ const validatePayments = (payments) => {
 const Bank = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
+  const phone = cookies.get("phone");
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [payments, setPayments] = useState({
@@ -81,7 +82,7 @@ const Bank = () => {
       // Fetch bank details on component mount
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/bank-details",
+        url: "http://localhost:3000/profile/bank-details",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -118,38 +119,41 @@ const Bank = () => {
     try {
       // Submit bank details data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/bank-details",
-        payments,
+        "http://localhost:3000/profile/verify-action",
+        { phoneNumber: phone },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
+      console.log("Response:", response.data);
+      localStorage.setItem("paymentsData", JSON.stringify(payments));
+      navigate("/profile/confirmaction/updatebank");
+      // const response_ = await axios.post(
+      //   "http://localhost:3000/profile/confirm",
+      //   payments,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
 
-      const response_ = await axios.post(
-        "https://api.intelectpravo.ru/profile/confirm",
-        payments,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // if (response_.data) {
+      //   // Remove token from cookies
+      //   cookies.remove("token", { path: "/" });
 
-      if (response_.data) {
-        // Remove token from cookies
-        cookies.remove("token", { path: "/" });
+      //   // Redirect to the homepage
+      //   navigate("/");
 
-        // Redirect to the homepage
-        navigate("/");
+      //   // Set success message
+      //   setMessage(response_.data.message);
 
-        // Set success message
-        setMessage(response_.data.message);
-
-        // Remove draft after successful submission
-        localStorage.removeItem("paymentsData");
-      }
+      //   // Remove draft after successful submission
+      //   localStorage.removeItem("paymentsData");
+      // }
     } catch (error) {
       console.log(error);
       // Optionally, set an error message here

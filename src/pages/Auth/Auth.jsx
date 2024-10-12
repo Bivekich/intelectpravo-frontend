@@ -7,45 +7,55 @@ import Cookies from "universal-cookie";
 const Auth = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState({
-    login: "",
+    login: "+7", // Automatically set the default value to +7
   });
-  const [errorMessage, setErrorMessage] = useState(""); // Для отображения ошибок валидации
+  const [errorMessage, setErrorMessage] = useState(""); // For validation errors
   const cookies = new Cookies();
 
   const HandleInput = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Automatically prepend +7 if not present
+    if (!value.startsWith("+7")) {
+      value = "+7" + value.replace(/\D/g, ""); // Remove non-numeric characters
+    }
+
+    // Limit the input to +7 followed by 10 digits
+    if (value.length > 12) {
+      value = value.slice(0, 12);
+    }
+
     setProfile((prevProfile) => ({
       ...prevProfile,
       [name]: value,
     }));
   };
 
-  const validateLogin = (login) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+7[0-9\s-()]{9,14}$/;
-    return emailRegex.test(login) || phoneRegex.test(login);
+  const validatePhone = (login) => {
+    const phoneRegex = /^\+7[0-9]{10}$/; // Validate the phone number format (10 digits after +7)
+    return phoneRegex.test(login);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Отключаем перезагрузку страницы
+    e.preventDefault(); // Prevent page reload
 
-    // Валидация поля login
-    if (!validateLogin(profile.login)) {
+    // Validate phone number
+    if (!validatePhone(profile.login)) {
       setErrorMessage(
-        "Введите корректный email или номер телефона (Должен начинаться с +7)."
+        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр)."
       );
       return;
     }
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/login",
+      url: "http://localhost:3000/auth/login",
       data: {
         login: profile.login,
       },
     })
       .then(function (response) {
-        // Успешный ответ
+        // Successful response
         console.log(response);
         if (response.status === 200) {
           cookies.set("phone", response.data.phone, { path: "/" });
@@ -54,10 +64,11 @@ const Auth = () => {
       })
       .catch(function (error) {
         if (error.response && error.response.status === 404) {
-          // Обработка ошибки 404
-          alert("Данного аккаунта не существует, зарегистрируйтесь");
-          cookies.set("login", profile.login, { path: "/" });
-          navigate("/signin");
+          // Handle 404 error
+          if (confirm("Данного аккаунта не существует, зарегистрируйтесь")) {
+            cookies.set("login", profile.login, { path: "/" });
+            navigate("/signin");
+          }
         } else {
           console.error("Произошла ошибка:", error);
         }
@@ -72,8 +83,8 @@ const Auth = () => {
       >
         <h3 className="font-semibold text-xl">Вход в систему</h3>
         <Input
-          label="Введите логин"
-          type="text"
+          label="Введите номер телефона"
+          type="tel"
           name="login"
           value={profile.login}
           onChange={HandleInput}

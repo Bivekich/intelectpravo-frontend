@@ -39,7 +39,7 @@ const Profile = () => {
   useEffect(() => {
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      url: "http://localhost:3000/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -49,7 +49,7 @@ const Profile = () => {
         setMessage(
           response.data.isConfirmed
             ? "Профиль подтвержден"
-            : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты"'
+            : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты", после их заполнения Ваш профиль будет направлен администратору сайта на проверку'
         );
         setConfirmed(response.data.isConfirmed);
       })
@@ -57,7 +57,7 @@ const Profile = () => {
         console.log(error);
       });
   }, [token]);
-
+  console.log(profile);
   const handleInput = (e) => {
     const { name, value } = e.target;
 
@@ -111,7 +111,7 @@ const Profile = () => {
 
     try {
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
+        "http://localhost:3000/profile/update",
         profileData,
         {
           headers: {
@@ -139,16 +139,27 @@ const Profile = () => {
     >
       <h3 className="font-semibold text-xl">Профиль пользователя</h3>
       <Input
-        label="Логин"
+        label="Email"
+        type="email"
+        name="email"
+        value={profile.email || ""}
+        onChange={handleInput}
+        required
+      />
+      {validationError.email && (
+        <span className="text-red-600">{validationError.email}</span>
+      )}
+      <Input
+        label="Телефон"
         type="text"
-        name="login"
-        value={profile.isConfirmed ? cookies.get("login") : profile.phoneNumber}
+        name="phoneNumber"
+        value={profile.phoneNumber || ""}
         onChange={handleInput}
         required
         readOnly
       />
-      {validationError.email && (
-        <span className="text-red-600">{validationError.email}</span>
+      {validationError.surname && (
+        <span className="text-red-600">{validationError.surname}</span>
       )}
       <Input
         label="Фамилия"

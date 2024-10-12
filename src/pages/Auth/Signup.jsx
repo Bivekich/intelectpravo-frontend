@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios"; // Import axios
 import Input from "../../components/Input";
 import Cookies from "universal-cookie";
@@ -15,13 +15,10 @@ const SignUp = () => {
     e.preventDefault(); // Prevent default form submission
 
     try {
-      const response = await axios.post(
-        "https://api.intelectpravo.ru/auth/verify",
-        {
-          phoneNumber: phone,
-          code: code,
-        }
-      );
+      const response = await axios.post("http://localhost:3000/auth/verify", {
+        phoneNumber: phone,
+        code: code,
+      });
 
       // Successful response, status will be 2xx
       console.log(response);

@@ -11,6 +11,7 @@ const SignIn = () => {
   const cookies = new Cookies();
   const phoneRegex = /^\+?[1-9]\d{1,14}$/; // Регулярное выражение для валидации телефона
   const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Регулярное выражение для валидации кириллицы
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Регулярное выражение для валидации email
 
   const [profile, setProfile] = useState({
     name: "",
@@ -21,6 +22,7 @@ const SignIn = () => {
       (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : ""),
     password: "",
     confirmPassword: "",
+    email: "", // Added email field
   });
 
   const [error, setError] = useState(""); // Для сообщений об ошибках
@@ -69,6 +71,22 @@ const SignIn = () => {
   const HandleInput = (e) => {
     const { name, value } = e.target;
 
+    // Установка максимальных символов для каждого поля
+    const maxLength = {
+      phone: 22,
+      name: 22,
+      surname: 22,
+      patronymic: 22,
+      password: 22,
+      confirmPassword: 22,
+      email: 100,
+    };
+
+    // Проверка длины значения перед обновлением состояния
+    if (value.length > maxLength[name]) {
+      return; // Не обновляем состояние, если превышен лимит
+    }
+
     // Проверка для имени, фамилии и отчества
     if (["name", "surname", "patronymic"].includes(name)) {
       if (!cyrillicRegex.test(value)) {
@@ -83,6 +101,13 @@ const SignIn = () => {
           [name]: "",
         }));
       }
+    }
+
+    // Email validation
+    if (name === "email" && !emailRegex.test(value)) {
+      setError("Неверный формат email.");
+    } else {
+      setError("");
     }
 
     const updatedProfile = { ...profile, [name]: value };
@@ -118,21 +143,22 @@ const SignIn = () => {
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/register",
+      url: "http://localhost:3000/auth/register",
       data: {
-        phone: profile.phone, // Изменено на phone
+        phone: profile.phone,
         name: profile.name,
         surname: profile.surname,
         patronymic: profile.patronymic,
-        password: md5(profile.password), // Отправляем только пароль
+        password: md5(profile.password),
+        email: profile.email, // Added email field
       },
     })
       .then(function (response) {
-        console.log(response);
         if (response.status === 200) {
           // Очищаем черновик после успешной регистрации
           localStorage.removeItem("draftProfile");
-          navigate("/auth");
+          cookies.set("phone", profile.phone, { path: "/" });
+          navigate("/signup");
         }
       })
       .catch(function (error) {
@@ -166,6 +192,16 @@ const SignIn = () => {
             (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : "")
           }
           required
+          maxLength={22} // Установлено ограничение в 22 символа
+        />
+        <Input
+          label="Email"
+          type="email"
+          name="email"
+          value={profile.email}
+          onChange={HandleInput}
+          required
+          maxLength={100} // Установлено ограничение в 100 символов
         />
         <Input
           label="Фамилия"
@@ -174,6 +210,7 @@ const SignIn = () => {
           value={profile.surname}
           onChange={HandleInput}
           required
+          maxLength={22} // Установлено ограничение в 22 символа
         />
         {validationError.surname && (
           <span className="text-red-600">{validationError.surname}</span>
@@ -185,6 +222,7 @@ const SignIn = () => {
           value={profile.name}
           onChange={HandleInput}
           required
+          maxLength={22} // Установлено ограничение в 22 символа
         />
         {validationError.name && (
           <span className="text-red-600">{validationError.name}</span>
@@ -196,6 +234,7 @@ const SignIn = () => {
           value={profile.patronymic}
           onChange={HandleInput}
           required
+          maxLength={22} // Установлено ограничение в 22 символа
         />
         {validationError.patronymic && (
           <span className="text-red-600">{validationError.patronymic}</span>
@@ -207,6 +246,7 @@ const SignIn = () => {
           value={profile.password}
           onChange={HandleInput}
           required
+          maxLength={22} // Установлено ограничение в 22 символа
         />
         <Input
           label="Подтвердите пароль"
@@ -215,9 +255,9 @@ const SignIn = () => {
           value={profile.confirmPassword}
           onChange={HandleInput}
           required
+          maxLength={22} // Установлено ограничение в 22 символа
         />
         {error && <span className="text-red-600">{error}</span>}
-        {/* Сообщение об ошибке */}
         <AcceptAll name="accept" />
         <button
           type="submit"

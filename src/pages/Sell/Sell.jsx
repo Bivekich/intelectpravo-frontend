@@ -93,7 +93,7 @@ const Sell = () => {
     formData.append("licenseTerm", file.licenseTerm);
 
     axios
-      .post("https://api.intelectpravo.ru/sale/create", formData, {
+      .post("http://localhost:3000/sale/create", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

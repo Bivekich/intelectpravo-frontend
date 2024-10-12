@@ -15,6 +15,8 @@ import Password from "./pages/Profile/Password";
 import LogInByPass from "./pages/Auth/LogInByPass";
 import Email from "./pages/Profile/Email";
 import ConfirmEmail from "./pages/Profile/Confirmemail";
+import ConfirmAction from "./pages/ConfirmAction";
+import Orders from "./pages/Ordes/Orders";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -38,6 +40,11 @@ function App() {
             <Route path="/profile/changepass" element={<Password />} />
             <Route path="/profile/changemail" element={<Email />} />
             <Route path="/profile/confirmemail" element={<ConfirmEmail />} />
+            <Route
+              path="/profile/confirmaction/:action"
+              element={<ConfirmAction />}
+            />
+            <Route path="/orders" element={<Orders />} />
           </Route>
         </Routes>
       </BrowserRouter>
