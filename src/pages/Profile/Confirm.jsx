@@ -134,8 +134,9 @@ const Confirm = () => {
       errors.passportNumber = "Номер паспорта должен содержать 6 цифр";
     }
 
-    if (!profile.passportCode || profile.passportCode.length !== 7) {
-      errors.passportCode = "Код подразделения должен содержать 6 цифр";
+    if (!profile.passportCode || !/^\d{3}-\d{3}$/.test(profile.passportCode)) {
+      errors.passportCode =
+        "Код подразделения должен содержать 6 цифр и тире (формат: 123-456)";
     }
 
     if (!profile.birthDate) {
@@ -191,6 +192,8 @@ const Confirm = () => {
     let limitedValue;
     if (name == "address") {
       limitedValue = value.length > 50 ? value.slice(0, 50) : value;
+    } else if (name == "passportIssuedBy") {
+      limitedValue = value.length > 100 ? value.slice(0, 50) : value;
     } else {
       limitedValue = value.length > 22 ? value.slice(0, 22) : value;
     }
