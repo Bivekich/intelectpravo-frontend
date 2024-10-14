@@ -84,7 +84,7 @@ const ConfirmAction = () => {
           // Clear local storage
           localStorage.removeItem("profileData");
           localStorage.removeItem("documentPhoto");
-          navigate("/profile/confirm");
+          navigate("/profile");
         } else if (action == "updatebank") {
           const payments = JSON.parse(localStorage.getItem("paymentsData"));
           const response = await axios.post(
@@ -98,7 +98,7 @@ const ConfirmAction = () => {
           );
           console.log(response);
           localStorage.removeItem("paymentsData");
-          navigate("/profile/bank");
+          navigate("/profile");
         }
       }
     } catch (error) {

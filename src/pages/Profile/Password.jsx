@@ -11,6 +11,7 @@ const Password = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordErrors, setPasswordErrors] = useState([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState(""); // For success message
 
@@ -43,6 +44,12 @@ const Password = () => {
       ...prevData,
       [name]: value,
     }));
+
+    // Проверка пароля на лету при изменении поля "newPassword"
+    if (name === "newPassword") {
+      const errors = validatePassword(value);
+      setPasswordErrors(errors);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -54,8 +61,7 @@ const Password = () => {
       return;
     }
 
-    // Валидация нового пароля
-    const passwordErrors = validatePassword(passwordData.newPassword);
+    // Проверяем наличие ошибок в пароле
     if (passwordErrors.length > 0) {
       setError(passwordErrors.join(" "));
       return;
@@ -116,6 +122,14 @@ const Password = () => {
         onChange={handleInputChange}
         required
       />
+      {/* Валидация пароля в реальном времени */}
+      {passwordErrors.length > 0 && (
+        <ul className="text-red-600">
+          {passwordErrors.map((error, index) => (
+            <li key={index}>{error}</li>
+          ))}
+        </ul>
+      )}
       <Input
         label="Подтвердите пароль"
         type="password"

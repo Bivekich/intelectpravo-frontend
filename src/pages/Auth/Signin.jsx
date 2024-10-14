@@ -9,9 +9,9 @@ import md5 from "md5";
 const SignIn = () => {
   const navigate = useNavigate();
   const cookies = new Cookies();
-  const phoneRegex = /^\+?[1-9]\d{1,14}$/; // Регулярное выражение для валидации телефона
-  const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/; // Регулярное выражение для валидации кириллицы
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Регулярное выражение для валидации email
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+  const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const [profile, setProfile] = useState({
     name: "",
@@ -25,14 +25,15 @@ const SignIn = () => {
     email: "", // Added email field
   });
 
-  const [error, setError] = useState(""); // Для сообщений об ошибках
+  const [error, setError] = useState(""); // Error messages
   const [validationError, setValidationError] = useState({
     name: "",
     surname: "",
     patronymic: "",
-  }); // Ошибки валидации полей
+  }); // Field validation errors
 
-  // Восстановление данных из localStorage при загрузке компонента
+  const [passwordValidation, setPasswordValidation] = useState(""); // Password validation errors
+
   useEffect(() => {
     const savedProfile = localStorage.getItem("draftProfile");
     if (savedProfile) {
@@ -40,12 +41,10 @@ const SignIn = () => {
     }
   }, []);
 
-  // Сохранение черновика в localStorage
   const saveDraftToLocalStorage = (data) => {
     localStorage.setItem("draftProfile", JSON.stringify(data));
   };
 
-  // Функция для валидации пароля
   const validatePassword = (password) => {
     const errors = [];
     if (password.length < 8) {
@@ -68,10 +67,9 @@ const SignIn = () => {
     return errors;
   };
 
-  const HandleInput = (e) => {
+  const handleInput = (e) => {
     const { name, value } = e.target;
 
-    // Установка максимальных символов для каждого поля
     const maxLength = {
       phone: 22,
       name: 22,
@@ -82,12 +80,10 @@ const SignIn = () => {
       email: 100,
     };
 
-    // Проверка длины значения перед обновлением состояния
     if (value.length > maxLength[name]) {
-      return; // Не обновляем состояние, если превышен лимит
+      return;
     }
 
-    // Проверка для имени, фамилии и отчества
     if (["name", "surname", "patronymic"].includes(name)) {
       if (!cyrillicRegex.test(value)) {
         setValidationError((prevErrors) => ({
@@ -103,43 +99,42 @@ const SignIn = () => {
       }
     }
 
-    // Email validation
     if (name === "email" && !emailRegex.test(value)) {
       setError("Неверный формат email.");
     } else {
       setError("");
     }
 
+    if (name === "password") {
+      const passwordErrors = validatePassword(value);
+      setPasswordValidation(passwordErrors.join(" "));
+    }
+
     const updatedProfile = { ...profile, [name]: value };
     setProfile(updatedProfile);
-
-    // Сохранение обновленного черновика
     saveDraftToLocalStorage(updatedProfile);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Предотвращаем перезагрузку страницы
+    e.preventDefault();
 
-    // Проверка на ошибки валидации
     if (Object.values(validationError).some((msg) => msg !== "")) {
       setError("Пожалуйста, исправьте ошибки в форме.");
       return;
     }
 
-    // Проверка на совпадение паролей
     if (profile.password !== profile.confirmPassword) {
       setError("Пароли не совпадают");
       return;
     }
 
-    // Валидация пароля
     const passwordErrors = validatePassword(profile.password);
     if (passwordErrors.length > 0) {
       setError(passwordErrors.join(" "));
       return;
     }
 
-    setError(""); // Очищаем предыдущие ошибки
+    setError("");
 
     axios({
       method: "post",
@@ -155,7 +150,6 @@ const SignIn = () => {
     })
       .then(function (response) {
         if (response.status === 200) {
-          // Очищаем черновик после успешной регистрации
           localStorage.removeItem("draftProfile");
           cookies.set("phone", profile.phone, { path: "/" });
           navigate("/signup");
@@ -182,35 +176,35 @@ const SignIn = () => {
       >
         <h3 className="font-semibold text-xl">Регистрация</h3>
         <Input
-          label="Телефон" // Изменено на "Телефон"
-          type="tel" // Изменен тип на "tel"
-          name="phone" // Изменено на "phone"
-          value={profile.phone} // Изменено на "phone"
-          onChange={HandleInput}
+          label="Телефон"
+          type="tel"
+          name="phone"
+          value={profile.phone}
+          onChange={handleInput}
           readOnly={
             cookies.get("phone") ||
             (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : "")
           }
           required
-          maxLength={22} // Установлено ограничение в 22 символа
+          maxLength={22}
         />
         <Input
           label="Email"
           type="email"
           name="email"
           value={profile.email}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
-          maxLength={100} // Установлено ограничение в 100 символов
+          maxLength={100}
         />
         <Input
           label="Фамилия"
           type="text"
           name="surname"
           value={profile.surname}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
-          maxLength={22} // Установлено ограничение в 22 символа
+          maxLength={22}
         />
         {validationError.surname && (
           <span className="text-red-600">{validationError.surname}</span>
@@ -220,9 +214,9 @@ const SignIn = () => {
           type="text"
           name="name"
           value={profile.name}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
-          maxLength={22} // Установлено ограничение в 22 символа
+          maxLength={22}
         />
         {validationError.name && (
           <span className="text-red-600">{validationError.name}</span>
@@ -232,9 +226,9 @@ const SignIn = () => {
           type="text"
           name="patronymic"
           value={profile.patronymic}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
-          maxLength={22} // Установлено ограничение в 22 символа
+          maxLength={22}
         />
         {validationError.patronymic && (
           <span className="text-red-600">{validationError.patronymic}</span>
@@ -244,18 +238,21 @@ const SignIn = () => {
           type="password"
           name="password"
           value={profile.password}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
-          maxLength={22} // Установлено ограничение в 22 символа
+          maxLength={22}
         />
+        {passwordValidation && (
+          <span className="text-red-600">{passwordValidation}</span>
+        )}
         <Input
           label="Подтвердите пароль"
           type="password"
           name="confirmPassword"
           value={profile.confirmPassword}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
-          maxLength={22} // Установлено ограничение в 22 символа
+          maxLength={22}
         />
         {error && <span className="text-red-600">{error}</span>}
         <AcceptAll name="accept" />
@@ -263,7 +260,7 @@ const SignIn = () => {
           type="submit"
           className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
         >
-          Зарегистрироватся
+          Зарегистрироваться
         </button>
       </form>
     </>
