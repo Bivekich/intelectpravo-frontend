@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "universal-cookie";
 import Loader from "../../components/Loader";
@@ -7,34 +7,67 @@ import Loader from "../../components/Loader";
 const Product = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
+  const phoneNumber = cookies.get("phone");
   const { pid } = useParams();
   const [item, setItem] = useState([]);
   const [message, setMessage] = useState([]);
   const [pay, setPay] = useState(true);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch profile data on component mount
-    axios({
-      method: "get",
-      url: `https://api.intelectpravo.ru/sale/user-buy?sid=${pid}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        console.log(response);
-        setItem(response.data.sale);
-        if (response.data.sale.userBought != null) {
+    const verifyAndFetchData = async () => {
+      const storedProductId = localStorage.getItem("product");
+
+      if (storedProductId !== pid) {
+        try {
+          // Verify action using the phone number from cookies
+          const response = await axios.post(
+            "https://api.intelectpravo.ru/profile/verify-action",
+            { phoneNumber }, // Send phone number
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          console.log("Response:", response.data);
+
+          localStorage.setItem("producttobuy", pid);
+          navigate("/profile/confirmaction/buyproduct"); // Change this to your desired route
+          return;
+        } catch (error) {
+          console.error("Verification failed:", error);
+        }
+      }
+
+      // Fetch profile data for the sale
+      try {
+        const saleResponse = await axios.get(
+          `https://api.intelectpravo.ru/sale/user-buy?sid=${pid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log(saleResponse);
+        setItem(saleResponse.data.sale);
+
+        if (saleResponse.data.sale.userBought != null) {
           setMessage("Файл снят с продажи");
           setPay(false);
         }
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.log(error);
-      });
-  }, [token]);
+        setLoading(false);
+      }
+    };
+
+    verifyAndFetchData();
+  }, [pid, token, phoneNumber, navigate]);
 
   const handlePaid = (e) => {
     e.preventDefault();

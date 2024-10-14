@@ -99,6 +99,10 @@ const ConfirmAction = () => {
           console.log(response);
           localStorage.removeItem("paymentsData");
           navigate("/profile");
+        } else if (action == "buyproduct") {
+          const producttobuy = localStorage.getItem("producttobuy");
+          localStorage.setItem("product", producttobuy);
+          navigate(`/buy/product/${producttobuy}`);
         }
       }
     } catch (error) {

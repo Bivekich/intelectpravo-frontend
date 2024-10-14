@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
-import { useLocation, Navigate } from "react-router-dom";
+import { useLocation, Navigate, Link, useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 import Paginator from "../../components/Paginator";
 // import { Input } from "postcss";
@@ -50,7 +50,6 @@ const Buy = () => {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
   const [search, setSearchInput] = useState(searchParams.get("search") || "");
-
   const page = searchParams.get("page") || 0; // Default to page 1 if not specified
 
   console.log(page);
@@ -138,13 +137,13 @@ const Buy = () => {
                 <p className="w-full text-xl">Реквизиты</p>
                 <p className="w-fit">Рассчетный счёт: {item.accountNumber} </p>
                 {!item.isMy ? (
-                  <a
-                    href={`buy/product/${item.id}`}
+                  <Link
+                    to={`/buy/product/${item.id}`}
                     type="button"
                     className="border-2 border-gray-300 py-2 rounded-xl text-gray-700 dark:text-white"
                   >
                     Купить
-                  </a>
+                  </Link>
                 ) : (
                   <span className="border-2 border-gray-300 py-2 rounded-xl text-gray-700 dark:text-white">
                     Это Ваше произведение

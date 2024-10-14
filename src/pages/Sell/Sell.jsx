@@ -12,6 +12,7 @@ const Sell = () => {
   const [license, setLicense] = useState(false);
   const [message, setMessage] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [file, setFile] = useState({
     title: "",
     description: "",
@@ -23,7 +24,6 @@ const Sell = () => {
     file: null,
   });
 
-  // Load data from localStorage when the component mounts
   useEffect(() => {
     const savedData = localStorage.getItem("formData");
     if (savedData) {
@@ -33,7 +33,6 @@ const Sell = () => {
     }
   }, []);
 
-  // Function to save form data to localStorage
   const saveToLocalStorage = (updatedData) => {
     localStorage.setItem("formData", JSON.stringify(updatedData));
   };
@@ -45,7 +44,7 @@ const Sell = () => {
       [name]: value,
     };
     setFile(updatedFile);
-    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
+    saveToLocalStorage(updatedFile);
   };
 
   const HandleCheckbox = (e) => {
@@ -55,7 +54,7 @@ const Sell = () => {
       [name]: checked,
     };
     setFile(updatedFile);
-    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
+    saveToLocalStorage(updatedFile);
   };
 
   const HandleSelect = (e) => {
@@ -66,7 +65,7 @@ const Sell = () => {
     };
     setFile(updatedFile);
     setLicense(value === "license");
-    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
+    saveToLocalStorage(updatedFile);
   };
 
   const handleFileChange = (e) => {
@@ -76,11 +75,30 @@ const Sell = () => {
       file: selectedFile,
     };
     setFile(updatedFile);
-    saveToLocalStorage(updatedFile); // Save to localStorage after updating state
+    saveToLocalStorage(updatedFile);
+  };
+
+  const validateForm = () => {
+    let formErrors = {};
+    // Check required fields
+    if (!file.title) formErrors.title = "Название произведения обязательно";
+    if (!file.description) formErrors.description = "Описание обязательно";
+    if (!file.price || isNaN(file.price))
+      formErrors.price = "Цена должна быть числом";
+    if (!file.saleType) formErrors.saleType = "Тип продажи обязателен";
+    if (license && (!file.licenseTerm || isNaN(file.licenseTerm))) {
+      formErrors.licenseTerm = "Срок лицензии должен быть числом";
+    }
+    if (!file.file) formErrors.file = "Файл обязателен для загрузки";
+
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return; // Stop submission if validation fails
+
     setLoading(true);
     const formData = new FormData();
     formData.append("file", file.file);
@@ -100,10 +118,9 @@ const Sell = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
         setMessage("Произведение опублиовано на продажу");
         setLoading(false);
-        localStorage.removeItem("formData"); // Clear the data from localStorage after successful submission
+        localStorage.removeItem("formData");
       })
       .catch((error) => {
         console.error(
@@ -132,6 +149,8 @@ const Sell = () => {
         onChange={HandleInput}
         required
       />
+      {errors.title && <span className="text-red-500">{errors.title}</span>}
+
       <Input
         label="Описание"
         type="text"
@@ -140,6 +159,10 @@ const Sell = () => {
         onChange={HandleInput}
         required
       />
+      {errors.description && (
+        <span className="text-red-500">{errors.description}</span>
+      )}
+
       <Input
         label="Цена"
         type="text"
@@ -148,6 +171,7 @@ const Sell = () => {
         onChange={HandleInput}
         required
       />
+      {errors.price && <span className="text-red-500">{errors.price}</span>}
 
       <Select
         label="Тип продажи"
@@ -160,6 +184,9 @@ const Sell = () => {
         ]}
         required
       />
+      {errors.saleType && (
+        <span className="text-red-500">{errors.saleType}</span>
+      )}
 
       <Input
         label="Файл"
@@ -168,6 +195,7 @@ const Sell = () => {
         onChange={handleFileChange}
         required
       />
+      {errors.file && <span className="text-red-500">{errors.file}</span>}
 
       <div className={`flex flex-row gap-2 ${!license ? "hidden" : ""}`}>
         <input
@@ -179,14 +207,19 @@ const Sell = () => {
         />
         <label htmlFor="isExclusive">Эксклюзивный</label>
       </div>
+
       <Input
-        label="Срок лицензии лет"
+        label="Срок лицензии (лет)"
         type="text"
         name="licenseTerm"
         hidden={!license}
         value={file.licenseTerm || ""}
         onChange={HandleInput}
       />
+      {errors.licenseTerm && (
+        <span className="text-red-500">{errors.licenseTerm}</span>
+      )}
+
       {message && <span>{message}</span>}
       <button
         type="submit"
