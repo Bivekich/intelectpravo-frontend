@@ -468,7 +468,7 @@ const Confirm = () => {
           label="Фотография документа"
           type="file"
           name="documentPhoto"
-          accept="image/*"
+          accept=".png, .jpg, .jpeg"
           onChange={handleFileChange}
           required
         />

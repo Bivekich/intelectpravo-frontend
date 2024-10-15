@@ -9,6 +9,7 @@ const Input = ({
   hidden = false,
   required = false,
   readOnly = false,
+  accept = "", // Adding accept as a prop with a default value of an empty string
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -33,6 +34,7 @@ const Input = ({
         onBlur={() => setIsFocused(false)} // Reset focus state on blur
         className={`rounded-xl p-2 bg-transparent border-2 w-full transition hover:scale-105 focus:scale-105 outline-none ${borderColor}`}
         required={required}
+        accept={type === "file" ? accept : undefined} // Apply accept attribute only if it's a file input
       />
 
       <label htmlFor={name} className={labelStyle}>

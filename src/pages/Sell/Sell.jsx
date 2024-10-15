@@ -39,9 +39,19 @@ const Sell = () => {
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
+
+    // Ограничение по символам
+    let limitedValue = value;
+    if (name === "title" && value.length > 50) {
+      limitedValue = value.slice(0, 50); // Обрезаем строку до 50 символов
+    }
+    if (name === "description" && value.length > 250) {
+      limitedValue = value.slice(0, 250); // Обрезаем строку до 250 символов
+    }
+
     const updatedFile = {
       ...file,
-      [name]: value,
+      [name]: limitedValue,
     };
     setFile(updatedFile);
     saveToLocalStorage(updatedFile);
@@ -118,7 +128,7 @@ const Sell = () => {
         },
       })
       .then((response) => {
-        setMessage("Произведение опублиовано на продажу");
+        setMessage("Произведение опублиоквано на продажу");
         setLoading(false);
         localStorage.removeItem("formData");
       })
