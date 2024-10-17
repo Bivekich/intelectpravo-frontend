@@ -33,7 +33,38 @@ const Auth = () => {
 
   const validatePhone = (login) => {
     const phoneRegex = /^\+7[0-9]{10}$/; // Validate the phone number format (10 digits after +7)
-    return phoneRegex.test(login);
+
+    // Check if phone matches the basic format
+    if (!phoneRegex.test(login)) {
+      return false;
+    }
+
+    // Check for sequences of identical digits (e.g., +71111111111)
+    const repeatedPattern = /(\d)\1{9}/; // Matches 10 repeated digits
+    if (repeatedPattern.test(login)) {
+      return false;
+    }
+
+    // Check for common invalid patterns (e.g., +70000000000)
+    const invalidPatterns = [
+      "+70000000000",
+      "+71111111111",
+      "+72222222222",
+      "+73333333333",
+      "+74444444444",
+      "+75555555555",
+      "+76666666666",
+      "+77777777777",
+      "+78888888888",
+      "+79999999999",
+      "+71234567890",
+      "+70987654321",
+    ];
+    if (invalidPatterns.includes(login)) {
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {

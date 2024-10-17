@@ -33,6 +33,22 @@ const Profile = () => {
     bic: "",
   });
 
+  const allFieldsFilled = () => {
+    const { isConfirmed, ...profileWithoutConfirmation } = profile; // Убираем isConfirmed из профиля
+    const { admin, ...profileWithoutConfirmationAndAdmin } =
+      profileWithoutConfirmation;
+    const { toSend, ...profileWithoutConfirmationAndAdminAndtoSend } =
+      profileWithoutConfirmationAndAdmin;
+    return (
+      !isConfirmed && // Проверяем, что isConfirmed равно false
+      !toSend &&
+      Object.values(profileWithoutConfirmationAndAdminAndtoSend).every(
+        (field) => field
+      ) &&
+      Object.values(payments).every((field) => field)
+    );
+  };
+
   useEffect(() => {
     // Fetch profile data
     axios({
@@ -49,6 +65,11 @@ const Profile = () => {
             ? "Профиль подтвержден"
             : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты", после их заполнения Ваш профиль будет направлен администратору сайта на проверку'
         );
+        if (response.data.toSend && !response.data.isConfirmed) {
+          setMessage(
+            "Ваш профиль отправлен на подтверждение администраторам сайта. Ожидайте"
+          );
+        }
         setConfirmed(response.data.isConfirmed);
       })
       .catch((error) => {
@@ -70,6 +91,25 @@ const Profile = () => {
         console.log(error);
       });
   }, [token]);
+
+  const handleSubmitForConfirmation = async () => {
+    try {
+      const response = await axios.post(
+        "https://api.intelectpravo.ru/profile/verify-action",
+        { phoneNumber: profile.phoneNumber }, // Send phone number
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Response:", response.data);
+      navigate("/profile/confirmaction/submitProfile");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const relogin = () => {
     cookies.remove("email", { path: "/" });
@@ -203,7 +243,12 @@ const Profile = () => {
       )}
 
       {/* Bank Details */}
-      <h3 className="font-semibold text-xl mt-5">Реквизиты пользователя</h3>
+      {(payments.cardNumber ||
+        payments.accountNumber ||
+        payments.corrAccount ||
+        payments.bic) && (
+        <h3 className="font-semibold text-xl mt-5">Реквизиты пользователя</h3>
+      )}
 
       {payments.cardNumber && (
         <Input
@@ -265,6 +310,17 @@ const Profile = () => {
       </Link>
 
       {message && <span>{message}</span>}
+
+      {/* Conditionally display submit button */}
+      {allFieldsFilled() && (
+        <button
+          type="button"
+          onClick={handleSubmitForConfirmation}
+          className="bg-green-600 rounded-xl text-white transition hover:scale-105"
+        >
+          Отправить профиль на подтверждение
+        </button>
+      )}
 
       <Link
         to="/"

@@ -11,7 +11,7 @@ const SignIn = () => {
   const cookies = new Cookies();
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
   const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const [profile, setProfile] = useState({
     name: "",
@@ -22,17 +22,18 @@ const SignIn = () => {
       (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : ""),
     password: "",
     confirmPassword: "",
-    email: "", // Added email field
+    email: "",
   });
 
-  const [error, setError] = useState(""); // Error messages
+  const [error, setError] = useState("");
   const [validationError, setValidationError] = useState({
     name: "",
     surname: "",
     patronymic: "",
-  }); // Field validation errors
+  });
 
-  const [passwordValidation, setPasswordValidation] = useState(""); // Password validation errors
+  const [passwordValidation, setPasswordValidation] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("draftProfile");
@@ -89,7 +90,7 @@ const SignIn = () => {
         setValidationError((prevErrors) => ({
           ...prevErrors,
           [name]:
-            "Поле должно начинаться с заглавной буквы и содержать только кириллицу",
+            "Поле должно начинаться с заглавной буквы и содержать только кириллицу.",
         }));
       } else {
         setValidationError((prevErrors) => ({
@@ -99,7 +100,7 @@ const SignIn = () => {
       }
     }
 
-    if (name === "email" && !emailRegex.test(value)) {
+    if (name === "email" && value.length <= 100 && !emailRegex.test(value)) {
       setError("Неверный формат email.");
     } else {
       setError("");
@@ -113,6 +114,10 @@ const SignIn = () => {
     const updatedProfile = { ...profile, [name]: value };
     setProfile(updatedProfile);
     saveDraftToLocalStorage(updatedProfile);
+  };
+
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e) => {
@@ -136,36 +141,54 @@ const SignIn = () => {
 
     setError("");
 
-    axios({
-      method: "post",
-      url: "https://api.intelectpravo.ru/auth/register",
-      data: {
-        phone: profile.phone,
-        name: profile.name,
-        surname: profile.surname,
-        patronymic: profile.patronymic,
-        password: md5(profile.password),
-        email: profile.email, // Added email field
-      },
-    })
-      .then(function (response) {
-        if (response.status === 200) {
-          localStorage.removeItem("draftProfile");
-          cookies.set("phone", profile.phone, { path: "/" });
-          navigate("/signup");
-        }
-      })
-      .catch(function (error) {
+    try {
+      const loginResponse = await axios({
+        method: "post",
+        url: "https://api.intelectpravo.ru/auth/login",
+        data: {
+          login: profile.phone,
+        },
+      });
+
+      if (loginResponse.status === 200) {
+        setError("Пользователь с этим номером телефона уже зарегистрирован");
         if (
-          error.response &&
-          error.response.data.message ===
-            "Пользователь уже существует. Авторизуйтесь."
+          confirm(
+            "Пользователь с этим номером телефона уже зарегистрирован. Войти?"
+          )
         ) {
           navigate("/auth");
-        } else {
-          console.error("Произошла ошибка:", error);
         }
-      });
+        return;
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        axios({
+          method: "post",
+          url: "https://api.intelectpravo.ru/auth/register",
+          data: {
+            phone: profile.phone,
+            name: profile.name,
+            surname: profile.surname,
+            patronymic: profile.patronymic,
+            password: md5(profile.password),
+            email: profile.email,
+          },
+        })
+          .then(function (response) {
+            if (response.status === 200) {
+              localStorage.removeItem("draftProfile");
+              cookies.set("phone", profile.phone, { path: "/" });
+              navigate("/signup");
+            }
+          })
+          .catch(function (error) {
+            console.error("Произошла ошибка при регистрации:", error);
+          });
+      } else {
+        console.error("Произошла ошибка при проверке номера телефона:", error);
+      }
+    }
   };
 
   return (
@@ -181,10 +204,6 @@ const SignIn = () => {
           name="phone"
           value={profile.phone}
           onChange={handleInput}
-          readOnly={
-            cookies.get("phone") ||
-            (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : "")
-          }
           required
           maxLength={22}
         />
@@ -233,21 +252,72 @@ const SignIn = () => {
         {validationError.patronymic && (
           <span className="text-red-600">{validationError.patronymic}</span>
         )}
-        <Input
-          label="Придумайте пароль"
-          type="password"
-          name="password"
-          value={profile.password}
-          onChange={handleInput}
-          required
-          maxLength={22}
-        />
+        <div className="relative">
+          <Input
+            label="Придумайте пароль"
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={profile.password}
+            onChange={handleInput}
+            required
+            maxLength={22}
+          />
+          <button
+            type="button"
+            onClick={toggleShowPassword}
+            className="absolute right-0 top-1/2 transform bg-transparent -translate-y-1/2 text-blue-500 border-0"
+            aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"} // Accessibility
+          >
+            {showPassword ? (
+              // Eye Slash SVG
+              <svg
+                width="20px"
+                height="20px"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.99902 3L20.999 21M9.8433 9.91364C9.32066 10.4536 8.99902 11.1892 8.99902 12C8.99902 13.6569 10.3422 15 11.999 15C12.8215 15 13.5667 14.669 14.1086 14.133M6.49902 6.64715C4.59972 7.90034 3.15305 9.78394 2.45703 12C3.73128 16.0571 7.52159 19 11.9992 19C13.9881 19 15.8414 18.4194 17.3988 17.4184M10.999 5.04939C11.328 5.01673 11.6617 5 11.9992 5C16.4769 5 20.2672 7.94291 21.5414 12C21.2607 12.894 20.8577 13.7338 20.3522 14.5"
+                  stroke="#535bf2"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            ) : (
+              // Eye SVG
+              <svg
+                width="20px"
+                height="20px"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.0007 12C15.0007 13.6569 13.6576 15 12.0007 15C10.3439 15 9.00073 13.6569 9.00073 12C9.00073 10.3431 10.3439 9 12.0007 9C13.6576 9 15.0007 10.3431 15.0007 12Z"
+                  stroke="#535bf2"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12.0012 5C7.52354 5 3.73326 7.94288 2.45898 12C3.73324 16.0571 7.52354 19 12.0012 19C16.4788 19 20.2691 16.0571 21.5434 12C20.2691 7.94291 16.4788 5 12.0012 5Z"
+                  stroke="#535bf2"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
         {passwordValidation && (
           <span className="text-red-600">{passwordValidation}</span>
         )}
         <Input
           label="Подтвердите пароль"
-          type="password"
+          type={showPassword ? "text" : "password"}
           name="confirmPassword"
           value={profile.confirmPassword}
           onChange={handleInput}

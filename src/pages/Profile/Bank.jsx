@@ -33,6 +33,7 @@ const getFromLocalStorage = (key) => {
 };
 
 // Функция для валидации полей
+// Функция для валидации полей
 const validatePayments = (payments) => {
   const errors = {};
 
@@ -54,6 +55,24 @@ const validatePayments = (payments) => {
   // Валидация БИК (обычно 9 цифр)
   if (!/^\d{9}$/.test(payments.bic)) {
     errors.bic = "БИК должен содержать 9 цифр.";
+  }
+
+  // Проверка, чтобы все цифры в расчетном счете не были одинаковыми
+  if (/^(\d)\1{19}$/.test(payments.accountNumber)) {
+    errors.accountNumber =
+      "Расчетный счет не может состоять из одинаковых цифр.";
+  }
+
+  // Проверка, чтобы все цифры в корреспондентском счете не были одинаковыми
+  if (/^(\d)\1{19}$/.test(payments.corrAccount)) {
+    errors.corrAccount =
+      "Корреспондентский счет не может состоять из одинаковых цифр.";
+  }
+
+  // Проверка, чтобы расчетный и корреспондентский счета не были равны
+  if (payments.accountNumber === payments.corrAccount) {
+    errors.corrAccount =
+      "Расчетный и корреспондентский счета не могут быть одинаковыми.";
   }
 
   return errors;
@@ -119,18 +138,18 @@ const Bank = () => {
     try {
       // Submit bank details data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/verify-action",
-        { phoneNumber: phone },
+        "https://api.intelectpravo.ru/profile/bank-details",
+        payments,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
+      console.log(response);
+      localStorage.removeItem("paymentsData");
       console.log("Response:", response.data);
-      localStorage.setItem("paymentsData", JSON.stringify(payments));
-      navigate("/profile/confirmaction/updatebank");
+      navigate("/profile");
       // const response_ = await axios.post(
       //   "https://api.intelectpravo.ru/profile/confirm",
       //   payments,

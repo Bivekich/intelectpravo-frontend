@@ -46,59 +46,22 @@ const ConfirmAction = () => {
       console.log(response);
       if (response.status === 200) {
         // Proceed to update profile if action matches
-        if (action === "updateprofile") {
-          const profileData = JSON.parse(localStorage.getItem("profileData"));
-          const updateResponse = await axios.post(
-            "https://api.intelectpravo.ru/profile/update",
-            profileData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          console.log(profileData);
-          console.log(updateResponse);
+        if (action === "submitProfile") {
+          axios({
+            method: "post",
+            url: "https://api.intelectpravo.ru/profile/submit",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((response) => {
+              console.log(response);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
 
-          const documentPhoto = localStorage.getItem("documentPhoto");
-          if (documentPhoto) {
-            const formData = new FormData();
-
-            // Convert Base64 to Blob
-            const blob = base64ToBlob(documentPhoto, "image/jpeg"); // Specify the correct content type
-            formData.append("documentPhoto", blob, "document.jpg"); // Append Blob to FormData
-
-            const huy = await axios.post(
-              "https://api.intelectpravo.ru/profile/upload-photo",
-              formData,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "multipart/form-data",
-                },
-              }
-            );
-            console.log(huy);
-          }
-
-          // Clear local storage
-          localStorage.removeItem("profileData");
-          localStorage.removeItem("documentPhoto");
-          navigate("/profile");
-        } else if (action == "updatebank") {
-          const payments = JSON.parse(localStorage.getItem("paymentsData"));
-          const response = await axios.post(
-            "https://api.intelectpravo.ru/profile/bank-details",
-            payments,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          console.log(response);
-          localStorage.removeItem("paymentsData");
-          navigate("/profile");
+          navigate(`/profile`);
         } else if (action == "buyproduct") {
           const producttobuy = localStorage.getItem("producttobuy");
           localStorage.setItem("product", producttobuy);

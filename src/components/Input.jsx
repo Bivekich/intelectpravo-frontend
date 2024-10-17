@@ -10,6 +10,7 @@ const Input = ({
   required = false,
   readOnly = false,
   accept = "", // Adding accept as a prop with a default value of an empty string
+  maxLength = 200, // Adding maxLength as a prop
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -35,6 +36,7 @@ const Input = ({
         className={`rounded-xl p-2 bg-transparent border-2 w-full transition hover:scale-105 focus:scale-105 outline-none ${borderColor}`}
         required={required}
         accept={type === "file" ? accept : undefined} // Apply accept attribute only if it's a file input
+        maxLength={maxLength} // Apply maxLength if provided
       />
 
       <label htmlFor={name} className={labelStyle}>

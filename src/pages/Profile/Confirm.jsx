@@ -94,7 +94,11 @@ const Confirm = () => {
     const errors = {};
     const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
     const phoneRegex = /^\+7\d{10}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const addressRegex =
+      /^(ул\.\s*\d*(?:-я|-й|-е|-ое|-ая)?\s*[А-ЯЁа-яё\s-]+,\s*д\.\s*\d+\s*,\s*г\.\s*[А-ЯЁа-яё\s-]+)$/;
+
+    const issuedByRegex = /^[А-ЯЁа-яё\s-]+$/; // Разрешаем только кириллицу, пробелы, точки, запятые и тире
     const minYear = 1900;
 
     const validateYear = (dateStr) => {
@@ -124,6 +128,9 @@ const Confirm = () => {
 
     if (!profile.address) {
       errors.address = "Адрес обязателен для заполнения";
+    } else if (!addressRegex.test(profile.address)) {
+      errors.address =
+        "Неверный формат адреса. Убедитесь, что он соответствует формату: ул. Название улицы, д. номер дома, г. Название города (например, ул. 6-я Сокольская, д. 6, г. Иваново)";
     }
 
     if (!profile.passportSeries || profile.passportSeries.length !== 4) {
@@ -153,6 +160,9 @@ const Confirm = () => {
 
     if (!profile.passportIssuedBy) {
       errors.passportIssuedBy = "Информация о выдаче паспорта обязательна";
+    } else if (!issuedByRegex.test(profile.passportIssuedBy)) {
+      errors.passportIssuedBy =
+        "Поле 'Кем выдан' может содержать только кириллицу, пробелы и тире.";
     }
 
     if (!profile.documentPhoto) {
@@ -193,7 +203,7 @@ const Confirm = () => {
     if (name == "address") {
       limitedValue = value.length > 50 ? value.slice(0, 50) : value;
     } else if (name == "passportIssuedBy") {
-      limitedValue = value.length > 100 ? value.slice(0, 50) : value;
+      limitedValue = value.length > 70 ? value.slice(0, 70) : value;
     } else {
       limitedValue = value.length > 22 ? value.slice(0, 22) : value;
     }
@@ -254,34 +264,41 @@ const Confirm = () => {
     const { documentPhoto, ...profileData } = profile;
 
     try {
-      // If documentPhoto is an object (likely a file), convert it to a string format for localStorage
-      if (typeof documentPhoto === "object") {
-        const reader = new FileReader();
-        reader.readAsDataURL(documentPhoto);
-        reader.onloadend = () => {
-          localStorage.setItem("documentPhoto", reader.result);
-        };
-      }
-
-      // Store the rest of the profile data
-      localStorage.setItem("profileData", JSON.stringify(profileData));
+      console.log(profileData);
+      console.log(documentPhoto);
 
       // Set phone number in cookies
       cookies.set("phone", profile.phoneNumber, { path: "/" });
-      console.log("Phone number being sent:", profile.phoneNumber);
-      const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/verify-action",
-        { phoneNumber: profile.phoneNumber },
+      // Navigate to confirmation page
+      const updateResponse = await axios.post(
+        "https://api.intelectpravo.ru/profile/update",
+        profileData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
-      console.log("Response:", response.data);
-      // Navigate to confirmation page
-      navigate("/profile/confirmaction/updateprofile");
+      console.log(updateResponse);
+      // If documentPhoto is an object (likely a file), convert it to a string format for localStorage
+      if (typeof documentPhoto === "object") {
+        const formData = new FormData();
+
+        formData.append("documentPhoto", documentPhoto);
+
+        const huy = await axios.post(
+          "https://api.intelectpravo.ru/profile/upload-photo",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        console.log(huy);
+      }
+      navigate("/profile");
     } catch (error) {
       console.error(error);
     }
