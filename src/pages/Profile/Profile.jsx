@@ -3,7 +3,7 @@ import Input from "../../components/Input";
 import { useNavigate, Link } from "react-router-dom";
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
-
+import AcceptAll from "../../components/AcceptAll";
 const Profile = () => {
   const cookies = new Cookies();
   const token = cookies.get("token");
@@ -313,13 +313,16 @@ const Profile = () => {
 
       {/* Conditionally display submit button */}
       {allFieldsFilled() && (
-        <button
-          type="button"
-          onClick={handleSubmitForConfirmation}
-          className="bg-green-600 rounded-xl text-white transition hover:scale-105"
-        >
-          Отправить профиль на подтверждение
-        </button>
+        <>
+          <AcceptAll name="accept" />
+          <button
+            type="button"
+            onClick={handleSubmitForConfirmation}
+            className="bg-green-600 rounded-xl text-white transition hover:scale-105"
+          >
+            Отправить профиль на подтверждение
+          </button>
+        </>
       )}
 
       <Link

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios"; // Import axios
 import Input from "../../components/Input";
 import Cookies from "universal-cookie";
@@ -11,7 +11,11 @@ const LogInByPass = () => {
   const [message, setMessage] = useState(""); // Initialize state with an empty string for message
   const phone = cookies.get("phone");
   const navigate = useNavigate(); // Initialize navigate
-
+  useEffect(() => {
+    if (!cookies.get("page")) {
+      cookies.set("page", "/loginbypass", { path: "/" });
+    }
+  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
@@ -28,6 +32,7 @@ const LogInByPass = () => {
       console.log(response);
       if (response.status === 200) {
         setMessage("");
+        cookies.remove("page");
         navigate("/signup");
         // Redirect to home after successful login
       }

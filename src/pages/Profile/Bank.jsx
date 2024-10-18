@@ -234,7 +234,7 @@ const Bank = () => {
         <span className="text-red-600">{validationErrors.bic}</span>
       )}
 
-      <AcceptAll name="accept" />
+      {/* <AcceptAll name="accept" /> */}
       {message !== "" && <span>{message}</span>}
       <button
         type="submit"

@@ -15,6 +15,7 @@ const Header = () => {
 
   const checkToken = () => {
     const token = cookies.get("token");
+    const currentPath = cookies.get("path");
     if (!token) {
       if (
         location.pathname !== "/auth" &&
@@ -24,6 +25,10 @@ const Header = () => {
       ) {
         navigate("/auth", { replace: true });
       }
+      if (currentPath && location.pathname != currentPath) {
+        navigate(currentPath, { replace: true });
+      }
+
       setHeaderVisible(false); // Скрыть заголовок, если токен отсутствует
     } else {
       if (

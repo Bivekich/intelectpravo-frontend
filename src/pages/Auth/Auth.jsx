@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Input from "../../components/Input";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,12 @@ const Auth = () => {
   });
   const [errorMessage, setErrorMessage] = useState(""); // For validation errors
   const cookies = new Cookies();
+
+  useEffect(() => {
+    if (!cookies.get("page")) {
+      cookies.set("page", "/auth", { path: "/" });
+    }
+  }, []);
 
   const HandleInput = (e) => {
     let { name, value } = e.target;
@@ -80,7 +86,7 @@ const Auth = () => {
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/login",
+      url: "http://localhost:3030/auth/login",
       data: {
         login: profile.login,
       },
@@ -90,6 +96,8 @@ const Auth = () => {
         console.log(response);
         if (response.status === 200) {
           cookies.set("phone", response.data.phone, { path: "/" });
+          cookies.remove("page");
+
           navigate("/loginbypass");
         }
       })

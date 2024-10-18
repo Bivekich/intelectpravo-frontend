@@ -11,6 +11,12 @@ const SignUp = () => {
   const phone = cookies.get("phone");
   const navigate = useNavigate(); // Initialize navigate
 
+  useEffect(() => {
+    if (!cookies.get("page")) {
+      cookies.set("page", "/sugnup", { path: "/" });
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
@@ -30,6 +36,7 @@ const SignUp = () => {
         var time = now.getTime();
         var expireTime = time + 1000 * 3600 * 24; // 24 часa
         now.setTime(expireTime);
+        cookies.remove("page");
 
         // Исправлено: передаем объект Date
         cookies.set("token", response.data.token, {

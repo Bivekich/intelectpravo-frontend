@@ -13,6 +13,12 @@ const SignIn = () => {
   const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+  useEffect(() => {
+    if (!cookies.get("page")) {
+      cookies.set("page", "/signin", { path: "/" });
+    }
+  }, []);
+
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
@@ -122,7 +128,9 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    cookies.remove("page");
 
+    // Validate the form
     if (Object.values(validationError).some((msg) => msg !== "")) {
       setError("Пожалуйста, исправьте ошибки в форме.");
       return;
@@ -142,16 +150,17 @@ const SignIn = () => {
     setError("");
 
     try {
-      const loginResponse = await axios({
-        method: "post",
-        url: "https://api.intelectpravo.ru/auth/login",
-        data: {
+      // Check if the phone is already registered
+      const loginResponse = await axios.post(
+        "https://api.intelectpravo.ru/auth/login",
+        {
           login: profile.phone,
-        },
-      });
+        }
+      );
 
       if (loginResponse.status === 200) {
         setError("Пользователь с этим номером телефона уже зарегистрирован");
+
         if (
           confirm(
             "Пользователь с этим номером телефона уже зарегистрирован. Войти?"
@@ -161,32 +170,36 @@ const SignIn = () => {
         }
         return;
       }
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        axios({
-          method: "post",
-          url: "https://api.intelectpravo.ru/auth/register",
-          data: {
-            phone: profile.phone,
-            name: profile.name,
-            surname: profile.surname,
-            patronymic: profile.patronymic,
-            password: md5(profile.password),
-            email: profile.email,
-          },
-        })
-          .then(function (response) {
-            if (response.status === 200) {
-              localStorage.removeItem("draftProfile");
-              cookies.set("phone", profile.phone, { path: "/" });
-              navigate("/signup");
+    } catch (loginError) {
+      // If the phone number is not registered (404), proceed with registration
+      if (loginError.response && loginError.response.status === 404) {
+        try {
+          // Register the new user
+          const registerResponse = await axios.post(
+            "https://api.intelectpravo.ru/auth/register",
+            {
+              phone: profile.phone,
+              name: profile.name,
+              surname: profile.surname,
+              patronymic: profile.patronymic,
+              password: md5(profile.password),
+              email: profile.email,
             }
-          })
-          .catch(function (error) {
-            console.error("Произошла ошибка при регистрации:", error);
-          });
+          );
+
+          if (registerResponse.status === 200) {
+            localStorage.removeItem("draftProfile");
+            cookies.set("phone", profile.phone, { path: "/" });
+            navigate("/signup");
+          }
+        } catch (registerError) {
+          console.error("Произошла ошибка при регистрации:", registerError);
+        }
       } else {
-        console.error("Произошла ошибка при проверке номера телефона:", error);
+        console.error(
+          "Произошла ошибка при проверке номера телефона:",
+          loginError
+        );
       }
     }
   };

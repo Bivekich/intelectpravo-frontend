@@ -201,8 +201,10 @@ const Confirm = () => {
     // Check if the input value length exceeds 50 characters
     let limitedValue;
     if (name == "address") {
-      limitedValue = value.length > 50 ? value.slice(0, 50) : value;
+      limitedValue = value.length > 100 ? value.slice(0, 100) : value;
     } else if (name == "passportIssuedBy") {
+      limitedValue = value.length > 100 ? value.slice(0, 100) : value;
+    } else if (name == "email") {
       limitedValue = value.length > 70 ? value.slice(0, 70) : value;
     } else {
       limitedValue = value.length > 22 ? value.slice(0, 22) : value;
@@ -494,7 +496,7 @@ const Confirm = () => {
         <span className="text-red-600">{validationErrors.documentPhoto}</span>
       )}
 
-      <AcceptAll name="accept" />
+      {/* <AcceptAll name="accept" /> */}
       {error && <span className="text-red-600">{error}</span>}
       {message && <span>{message}</span>}
 
