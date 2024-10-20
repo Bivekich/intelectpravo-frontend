@@ -95,9 +95,6 @@ const Confirm = () => {
     const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
     const phoneRegex = /^\+7\d{10}$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const addressRegex =
-      /^(ул\.\s*\d*(?:-я|-й|-е|-ое|-ая)?\s*[А-ЯЁа-яё\s-]+,\s*д\.\s*\d+\s*,\s*г\.\s*[А-ЯЁа-яё\s-]+)$/;
-
     const issuedByRegex = /^[А-ЯЁа-яё\s-]+$/; // Разрешаем только кириллицу, пробелы, точки, запятые и тире
     const minYear = 1900;
 
@@ -128,9 +125,6 @@ const Confirm = () => {
 
     if (!profile.address) {
       errors.address = "Адрес обязателен для заполнения";
-    } else if (!addressRegex.test(profile.address)) {
-      errors.address =
-        "Неверный формат адреса. Убедитесь, что он соответствует формату: ул. Название улицы, д. номер дома, г. Название города (например, ул. 6-я Сокольская, д. 6, г. Иваново)";
     }
 
     if (!profile.passportSeries || profile.passportSeries.length !== 4) {
@@ -386,6 +380,7 @@ const Confirm = () => {
         value={profile.address || ""}
         onChange={HandleInput}
         required
+        maxLength={280}
         placeholder="Например: 123456, Город, Улица, 10, 5"
       />
       {validationErrors.address && (
