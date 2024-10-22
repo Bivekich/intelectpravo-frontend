@@ -71,7 +71,7 @@ const Confirm = () => {
     } else {
       axios({
         method: "get",
-        url: "http://localhost:3030/profile/basic",
+        url: "https://api.intelectpravo.ru/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -267,7 +267,7 @@ const Confirm = () => {
       cookies.set("phone", profile.phoneNumber, { path: "/" });
       // Navigate to confirmation page
       const updateResponse = await axios.post(
-        "http://localhost:3030/profile/update",
+        "https://api.intelectpravo.ru/profile/update",
         profileData,
         {
           headers: {
@@ -283,7 +283,7 @@ const Confirm = () => {
         formData.append("documentPhoto", documentPhoto);
 
         const huy = await axios.post(
-          "http://localhost:3030/profile/upload-photo",
+          "https://api.intelectpravo.ru/profile/upload-photo",
           formData,
           {
             headers: {

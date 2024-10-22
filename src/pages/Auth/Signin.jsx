@@ -152,7 +152,7 @@ const SignIn = () => {
     try {
       // Check if the phone is already registered
       const loginResponse = await axios.post(
-        "http://localhost:3030/auth/login",
+        "https://api.intelectpravo.ru/auth/login",
         {
           login: profile.phone,
         }
@@ -176,7 +176,7 @@ const SignIn = () => {
         try {
           // Register the new user
           const registerResponse = await axios.post(
-            "http://localhost:3030/auth/register",
+            "https://api.intelectpravo.ru/auth/register",
             {
               phone: profile.phone,
               name: profile.name,

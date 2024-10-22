@@ -115,7 +115,7 @@ const Sell = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3030/profile/check-verify",
+        "https://api.intelectpravo.ru/profile/check-verify",
         {
           phoneNumber: phone,
           code: code,
@@ -141,7 +141,7 @@ const Sell = () => {
         formData.append("licenseTerm", file.licenseTerm);
 
         const response1 = await axios.post(
-          "http://localhost:3030/sale/create",
+          "https://api.intelectpravo.ru/sale/create",
           formData,
           {
             headers: {
@@ -179,7 +179,7 @@ const Sell = () => {
     try {
       if (!validateForm()) return; // Stop submission if validation fails
       const response = await axios.post(
-        "http://localhost:3030/profile/verify-action",
+        "https://api.intelectpravo.ru/profile/verify-action",
         { phoneNumber: phone }, // Send phone number
         {
           headers: {
@@ -263,7 +263,7 @@ const Sell = () => {
           <p>Ваш файл:</p>
           {file.file && (
             <a
-              href={`http://localhost:3030/path/to/download/${file.file.name}`} // Replace with your file's download URL
+              href={`https://api.intelectpravo.ru/path/to/download/${file.file.name}`} // Replace with your file's download URL
               className="text-blue-500 underline"
               download // This attribute prompts the browser to download the file
             >

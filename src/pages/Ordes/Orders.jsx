@@ -12,7 +12,7 @@ const Orders = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3030/profile/getNotConfirmedFilledUsers",
+          "https://api.intelectpravo.ru/profile/getNotConfirmedFilledUsers",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -42,7 +42,7 @@ const Orders = () => {
     updateUserState(userId, { admin: true });
     try {
       await axios.post(
-        "http://localhost:3030/profile/addAdmin",
+        "https://api.intelectpravo.ru/profile/addAdmin",
         { userId },
         {
           headers: {
@@ -59,7 +59,7 @@ const Orders = () => {
     updateUserState(userId, { admin: false });
     try {
       await axios.post(
-        "http://localhost:3030/profile/removeAdmin",
+        "https://api.intelectpravo.ru/profile/removeAdmin",
         { userId },
         {
           headers: {
@@ -77,7 +77,7 @@ const Orders = () => {
     updateUserState(userId, { isConfirmed: true }); // Update confirmation status
     try {
       const response = await axios.post(
-        "http://localhost:3030/profile/confirm",
+        "https://api.intelectpravo.ru/profile/confirm",
         { userId },
         {
           headers: {
@@ -98,7 +98,7 @@ const Orders = () => {
     updateUserState(userId, { isConfirmed: false }); // Update confirmation status
     try {
       await axios.post(
-        "http://localhost:3030/profile/disconfirm",
+        "https://api.intelectpravo.ru/profile/disconfirm",
         { userId },
         {
           headers: {
