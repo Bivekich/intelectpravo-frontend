@@ -117,6 +117,12 @@ const Profile = () => {
     navigate("/");
   };
 
+  const formatDateForInput = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toISOString().split("T")[0];
+  };
+
   return (
     <form className="flex flex-col gap-5 px-10 mx-auto py-5 border-2 rounded-2xl max-w-[400px] w-full">
       <h3 className="font-semibold text-xl">Профиль пользователя</h3>
@@ -187,7 +193,7 @@ const Profile = () => {
           label="Дата рождения"
           type="date"
           name="birthDate"
-          value={profile.birthDate}
+          value={formatDateForInput(profile.birthDate) || ""}
           readOnly
         />
       )}
@@ -217,7 +223,7 @@ const Profile = () => {
           label="Когда выдан"
           type="date"
           name="passportIssuedDate"
-          value={profile.passportIssuedDate}
+          value={formatDateForInput(profile.passportIssuedDate) || ""}
           readOnly
         />
       )}
