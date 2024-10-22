@@ -86,7 +86,7 @@ const Auth = () => {
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/login",
+      url: "http://localhost:3030/auth/login",
       data: {
         login: profile.login,
       },

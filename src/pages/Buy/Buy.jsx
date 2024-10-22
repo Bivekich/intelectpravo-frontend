@@ -23,7 +23,7 @@ const getItems = async (limit, offset, token, search = "") => {
     // Выполняем запрос с переданными параметрами
     const response = await axios({
       method: "get",
-      url: `https://api.intelectpravo.ru/sale/sales?${params.toString()}`, // Динамическое создание query-параметров
+      url: `http://localhost:3030/sale/sales?${params.toString()}`, // Динамическое создание query-параметров
       headers: {
         Authorization: `Bearer ${token}`,
       },

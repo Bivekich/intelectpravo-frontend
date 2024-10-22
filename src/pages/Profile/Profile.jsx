@@ -53,7 +53,7 @@ const Profile = () => {
     // Fetch profile data
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      url: "http://localhost:3030/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -79,7 +79,7 @@ const Profile = () => {
     // Fetch bank details data
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/bank-details",
+      url: "http://localhost:3030/profile/bank-details",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -95,7 +95,7 @@ const Profile = () => {
   const handleSubmitForConfirmation = async () => {
     try {
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/verify-action",
+        "http://localhost:3030/profile/verify-action",
         { phoneNumber: profile.phoneNumber }, // Send phone number
         {
           headers: {

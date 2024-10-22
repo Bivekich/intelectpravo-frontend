@@ -101,7 +101,7 @@ const Bank = () => {
       // Fetch bank details on component mount
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/bank-details",
+        url: "http://localhost:3030/profile/bank-details",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -138,7 +138,7 @@ const Bank = () => {
     try {
       // Submit bank details data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/bank-details",
+        "http://localhost:3030/profile/bank-details",
         payments,
         {
           headers: {
@@ -151,7 +151,7 @@ const Bank = () => {
       console.log("Response:", response.data);
       navigate("/profile");
       // const response_ = await axios.post(
-      //   "https://api.intelectpravo.ru/profile/confirm",
+      //   "http://localhost:3030/profile/confirm",
       //   payments,
       //   {
       //     headers: {

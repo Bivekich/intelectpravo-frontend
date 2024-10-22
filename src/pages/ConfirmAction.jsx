@@ -29,7 +29,7 @@ const ConfirmAction = () => {
 
     try {
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/check-verify",
+        "http://localhost:3030/profile/check-verify",
         {
           phoneNumber: phone,
           code: code,
@@ -49,7 +49,7 @@ const ConfirmAction = () => {
         if (action === "submitProfile") {
           axios({
             method: "post",
-            url: "https://api.intelectpravo.ru/profile/submit",
+            url: "http://localhost:3030/profile/submit",
             headers: {
               Authorization: `Bearer ${token}`,
             },

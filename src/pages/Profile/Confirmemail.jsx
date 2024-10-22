@@ -22,7 +22,7 @@ const ConfirmEmail = () => {
     try {
       // Submit profile data
       const response = await axios.post(
-        `https://api.intelectpravo.ru/profile/confirm-email`,
+        `http://localhost:3030/profile/confirm-email`,
         {
           email: email,
           code: code,

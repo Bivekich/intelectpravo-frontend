@@ -8,7 +8,10 @@ import Loader from "../../components/Loader";
 
 const Sell = () => {
   const cookies = new Cookies();
+  const phone = cookies.get("phone");
   const token = cookies.get("token");
+  const [code, setCode] = useState("");
+  const [getCode, setGetCode] = useState(false);
   const [license, setLicense] = useState(false);
   const [message, setMessage] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -40,13 +43,13 @@ const Sell = () => {
   const HandleInput = (e) => {
     const { name, value } = e.target;
 
-    // Ограничение по символам
+    // Character limits
     let limitedValue = value;
     if (name === "title" && value.length > 50) {
-      limitedValue = value.slice(0, 50); // Обрезаем строку до 50 символов
+      limitedValue = value.slice(0, 50);
     }
     if (name === "description" && value.length > 250) {
-      limitedValue = value.slice(0, 250); // Обрезаем строку до 250 символов
+      limitedValue = value.slice(0, 250);
     }
 
     const updatedFile = {
@@ -55,6 +58,9 @@ const Sell = () => {
     };
     setFile(updatedFile);
     saveToLocalStorage(updatedFile);
+
+    // Perform validation after updating state
+    validateForm();
   };
 
   const HandleCheckbox = (e) => {
@@ -107,37 +113,87 @@ const Sell = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return; // Stop submission if validation fails
-
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("file", file.file);
-    formData.append("title", file.title);
-    formData.append("description", file.description);
-    formData.append("price", file.price);
-    formData.append("accountNumber", file.accountNumber);
-    formData.append("saleType", file.saleType);
-    formData.append("isExclusive", file.isExclusive);
-    formData.append("licenseTerm", file.licenseTerm);
-
-    axios
-      .post("https://api.intelectpravo.ru/sale/create", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+    try {
+      const response = await axios.post(
+        "http://localhost:3030/profile/check-verify",
+        {
+          phoneNumber: phone,
+          code: code,
         },
-      })
-      .then((response) => {
-        setMessage("Произведение опублиоквано на продажу");
-        setLoading(false);
-        localStorage.removeItem("formData");
-      })
-      .catch((error) => {
-        console.error(
-          "Error:",
-          error.response ? error.response.data : error.message
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setLoading(true);
+        const formData = new FormData();
+        formData.append("file", file.file);
+        formData.append("title", file.title);
+        formData.append("description", file.description);
+        formData.append("price", file.price);
+        formData.append("accountNumber", file.accountNumber);
+        formData.append("saleType", file.saleType);
+        formData.append("isExclusive", file.isExclusive);
+        formData.append("licenseTerm", file.licenseTerm);
+
+        const response1 = await axios.post(
+          "http://localhost:3030/sale/create",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
-      });
+        if (response1.status === 200) {
+          setLoading(false); // Ensure loading is stopped in case of success or error
+
+          alert("Произведение опубликовано на продажу");
+          setMessage("Произведение опубликовано на продажу");
+          localStorage.removeItem("formData");
+        }
+      }
+    } catch (error) {
+      if (error.response.status === 400) {
+        alert("Неправильный или просроченный код.");
+        setMessage("Неправильный или просроченный код.");
+      }
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
+    } finally {
+      setLoading(false); // Ensure loading is stopped in case of success or error
+    }
+  };
+
+  const handleSubmitForConfirmation = async (e) => {
+    e.preventDefault();
+    console.log(1);
+    setLoading(true);
+    try {
+      if (!validateForm()) return; // Stop submission if validation fails
+      const response = await axios.post(
+        "http://localhost:3030/profile/verify-action",
+        { phoneNumber: phone }, // Send phone number
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Response:", response.data);
+      setGetCode(true);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return loading ? (
@@ -146,7 +202,7 @@ const Sell = () => {
     </div>
   ) : (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={getCode ? handleSubmit : handleSubmitForConfirmation}
       className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
     >
       <h3 className="font-semibold text-xl">Реквизиты пользователя</h3>
@@ -158,6 +214,7 @@ const Sell = () => {
         value={file.title || ""}
         onChange={HandleInput}
         required
+        readOnly={getCode}
       />
       {errors.title && <span className="text-red-500">{errors.title}</span>}
 
@@ -168,6 +225,7 @@ const Sell = () => {
         value={file.description || ""}
         onChange={HandleInput}
         required
+        readOnly={getCode}
       />
       {errors.description && (
         <span className="text-red-500">{errors.description}</span>
@@ -180,6 +238,7 @@ const Sell = () => {
         value={file.price || ""}
         onChange={HandleInput}
         required
+        readOnly={getCode}
       />
       {errors.price && <span className="text-red-500">{errors.price}</span>}
 
@@ -193,18 +252,36 @@ const Sell = () => {
           { label: "Лицензия", value: "license" },
         ]}
         required
+        readOnly={getCode}
       />
       {errors.saleType && (
         <span className="text-red-500">{errors.saleType}</span>
       )}
 
-      <Input
-        label="Файл"
-        type="file"
-        name="file"
-        onChange={handleFileChange}
-        required
-      />
+      {getCode ? (
+        <>
+          <p>Ваш файл:</p>
+          {file.file && (
+            <a
+              href={`http://localhost:3030/path/to/download/${file.file.name}`} // Replace with your file's download URL
+              className="text-blue-500 underline"
+              download // This attribute prompts the browser to download the file
+            >
+              {file.file.name}
+            </a>
+          )}
+        </>
+      ) : (
+        <Input
+          label="Файл"
+          type="file"
+          name="file"
+          onChange={handleFileChange}
+          required
+          readOnly={getCode}
+        />
+      )}
+
       {errors.file && <span className="text-red-500">{errors.file}</span>}
 
       <div className={`flex flex-row gap-2 ${!license ? "hidden" : ""}`}>
@@ -228,6 +305,19 @@ const Sell = () => {
       />
       {errors.licenseTerm && (
         <span className="text-red-500">{errors.licenseTerm}</span>
+      )}
+
+      {getCode && (
+        <>
+          <p>Введите код подтверждения который пршел Вам на телефон</p>
+          <Input
+            label="Код подтверждени"
+            type="text"
+            name="code"
+            value={code || ""}
+            onChange={(e) => setCode(e.target.value)}
+          />
+        </>
       )}
 
       {message && <span>{message}</span>}
