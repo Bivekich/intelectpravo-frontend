@@ -17,7 +17,7 @@ const Orders = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         setUsers(response.data);
       } catch (error) {
@@ -32,7 +32,7 @@ const Orders = () => {
     setUsers((prevUsers) => {
       return prevUsers
         .map((user) =>
-          user.userId === updatedUserId ? { ...user, ...updateField } : user
+          user.userId === updatedUserId ? { ...user, ...updateField } : user,
         )
         .sort((a, b) => a.isConfirmed - b.isConfirmed); // Sort users
     });
@@ -48,7 +48,7 @@ const Orders = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
     } catch (error) {
       console.log(error);
@@ -65,7 +65,7 @@ const Orders = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
     } catch (error) {
       console.log(error);
@@ -83,7 +83,7 @@ const Orders = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log(response); // Log the response for debugging
@@ -104,7 +104,7 @@ const Orders = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
     } catch (error) {
       console.log(error);

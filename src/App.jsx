@@ -18,6 +18,7 @@ import ConfirmEmail from "./pages/Profile/Confirmemail";
 import ConfirmAction from "./pages/ConfirmAction";
 import Orders from "./pages/Ordes/Orders";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RestorePass from "./pages/Auth/RestorePass";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/loginbypass" element={<LogInByPass />} />
+            <Route path="/restorepass" element={<RestorePass />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/confirm" element={<Confirm />} />
             <Route path="/profile/bank" element={<Bank />} />

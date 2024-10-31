@@ -30,7 +30,7 @@ const Product = () => {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
-            }
+            },
           );
           console.log("Response:", response.data);
 
@@ -50,7 +50,7 @@ const Product = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         console.log(saleResponse);
         setItem(saleResponse.data.sale);

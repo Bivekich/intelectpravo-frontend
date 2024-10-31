@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Input from "../../components/Input";
+import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
 import { useNavigate } from "react-router-dom";
 import Cookies from "universal-cookie";
 
@@ -10,6 +11,8 @@ const Auth = () => {
     login: "+7", // Automatically set the default value to +7
   });
   const [errorMessage, setErrorMessage] = useState(""); // For validation errors
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true); // Button state
+  const [showModal, setShowModal] = useState(false); // Modal visibility state
   const cookies = new Cookies();
 
   useEffect(() => {
@@ -18,12 +21,12 @@ const Auth = () => {
     }
   }, []);
 
-  const HandleInput = (e) => {
+  const handleInput = (e) => {
     let { name, value } = e.target;
 
-    // Automatically prepend +7 if not present
+    // Automatically prepend +7 if not present and remove non-numeric characters
     if (!value.startsWith("+7")) {
-      value = "+7" + value.replace(/\D/g, ""); // Remove non-numeric characters
+      value = "+7" + value.replace(/\D/g, "");
     }
 
     // Limit the input to +7 followed by 10 digits
@@ -35,6 +38,17 @@ const Auth = () => {
       ...prevProfile,
       [name]: value,
     }));
+
+    // Validate the phone number on every input change
+    if (validatePhone(value)) {
+      setErrorMessage("");
+      setIsButtonDisabled(false);
+    } else {
+      setErrorMessage(
+        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).",
+      );
+      setIsButtonDisabled(true);
+    }
   };
 
   const validatePhone = (login) => {
@@ -79,7 +93,7 @@ const Auth = () => {
     // Validate phone number
     if (!validatePhone(profile.login)) {
       setErrorMessage(
-        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр)."
+        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).",
       );
       return;
     }
@@ -103,15 +117,24 @@ const Auth = () => {
       })
       .catch(function (error) {
         if (error.response && error.response.status === 404) {
-          // Handle 404 error
-          if (confirm("Данного аккаунта не существует, зарегистрируйтесь")) {
-            cookies.set("login", profile.login, { path: "/" });
-            navigate("/signin");
-          }
+          // Show modal when the account doesn't exist
+          setShowModal(true);
         } else {
           console.error("Произошла ошибка:", error);
         }
       });
+  };
+
+  const handleConfirm = () => {
+    // "Да" button click handler - navigate to registration
+    cookies.set("login", profile.login, { path: "/" });
+    navigate("/signin");
+    setShowModal(false);
+  };
+
+  const handleCancel = () => {
+    // "Нет" button click handler - just close the modal
+    setShowModal(false);
   };
 
   return (
@@ -126,7 +149,7 @@ const Auth = () => {
           type="tel"
           name="login"
           value={profile.login}
-          onChange={HandleInput}
+          onChange={handleInput}
           required
         />
 
@@ -134,11 +157,24 @@ const Auth = () => {
 
         <button
           type="submit"
-          className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
+          className={`rounded-xl text-white transition hover:scale-105 ${
+            isButtonDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600"
+          }`}
+          disabled={isButtonDisabled}
         >
-          Дальше
+          Вход
         </button>
       </form>
+
+      {/* Render the modal only when showModal is true */}
+      {showModal && (
+        <AlertModal
+          title="Уведомление от администратора платформы intelectpravo.ru"
+          message="Учётной записи по указанному номеру не существует. Хотите создать учётную запись?"
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
+      )}
     </>
   );
 };

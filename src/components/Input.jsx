@@ -11,6 +11,9 @@ const Input = ({
   readOnly = false,
   accept = "", // Adding accept as a prop with a default value of an empty string
   maxLength = 200, // Adding maxLength as a prop
+  min = 0,
+  max = 99999999,
+  autoComplete = "off",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -37,6 +40,9 @@ const Input = ({
         required={required}
         accept={type === "file" ? accept : undefined} // Apply accept attribute only if it's a file input
         maxLength={maxLength} // Apply maxLength if provided
+        autoComplete={autoComplete}
+        min={type === "number" ? min : undefined} // Apply min if it's a number input
+        max={type === "number" ? max : undefined} // Apply max if it's a number input
       />
 
       <label htmlFor={name} className={labelStyle}>

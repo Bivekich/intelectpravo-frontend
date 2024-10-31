@@ -3,7 +3,7 @@ import Input from "../../components/Input";
 import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import AcceptAll from "../../components/AcceptAll";
+import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
 
 const EXPIRATION_TIME = 300000; // 5 минут
 
@@ -38,39 +38,43 @@ const validatePayments = (payments) => {
   const errors = {};
 
   // Валидация номера карты (должен содержать 16 цифр)
-  if (!/^\d{16}$/.test(payments.cardNumber)) {
+  if (payments.cardNumber && !/^\d{16}$/.test(payments.cardNumber)) {
     errors.cardNumber = "Номер карты должен содержать 16 цифр.";
   }
 
   // Валидация расчетного счета (обычно 20 цифр)
-  if (!/^\d{20}$/.test(payments.accountNumber)) {
+  if (payments.accountNumber && !/^\d{20}$/.test(payments.accountNumber)) {
     errors.accountNumber = "Расчетный счет должен содержать 20 цифр.";
   }
 
   // Валидация корреспондентского счета (обычно 20 цифр)
-  if (!/^\d{20}$/.test(payments.corrAccount)) {
+  if (payments.corrAccount && !/^\d{20}$/.test(payments.corrAccount)) {
     errors.corrAccount = "Корреспондентский счет должен содержать 20 цифр.";
   }
 
   // Валидация БИК (обычно 9 цифр)
-  if (!/^\d{9}$/.test(payments.bic)) {
+  if (payments.bic && !/^\d{9}$/.test(payments.bic)) {
     errors.bic = "БИК должен содержать 9 цифр.";
   }
 
   // Проверка, чтобы все цифры в расчетном счете не были одинаковыми
-  if (/^(\d)\1{19}$/.test(payments.accountNumber)) {
+  if (payments.accountNumber && /^(\d)\1{19}$/.test(payments.accountNumber)) {
     errors.accountNumber =
       "Расчетный счет не может состоять из одинаковых цифр.";
   }
 
   // Проверка, чтобы все цифры в корреспондентском счете не были одинаковыми
-  if (/^(\d)\1{19}$/.test(payments.corrAccount)) {
+  if (payments.corrAccount && /^(\d)\1{19}$/.test(payments.corrAccount)) {
     errors.corrAccount =
       "Корреспондентский счет не может состоять из одинаковых цифр.";
   }
 
   // Проверка, чтобы расчетный и корреспондентский счета не были равны
-  if (payments.accountNumber === payments.corrAccount) {
+  if (
+    payments.accountNumber &&
+    payments.corrAccount &&
+    payments.accountNumber === payments.corrAccount
+  ) {
     errors.corrAccount =
       "Расчетный и корреспондентский счета не могут быть одинаковыми.";
   }
@@ -84,19 +88,24 @@ const Bank = () => {
   const phone = cookies.get("phone");
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const [enableButton, setEnableButton] = useState(false);
   const [payments, setPayments] = useState({
-    cardNumber: "",
-    accountNumber: "",
-    corrAccount: "",
-    bic: "",
+    cardNumber: null,
+    accountNumber: null,
+    corrAccount: null,
+    bic: null,
   });
+  const [showModalBack, setShowModalBack] = useState(false);
+  const [showModalSave, setShowModalSave] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [initialPayments, setInitialPayments] = useState({});
 
   // При загрузке проверяем, есть ли черновик в localStorage
   useEffect(() => {
     const savedPayments = getFromLocalStorage("paymentsData");
     if (savedPayments) {
       setPayments(savedPayments);
+      setInitialPayments(savedPayments);
     } else {
       // Fetch bank details on component mount
       axios({
@@ -114,6 +123,20 @@ const Bank = () => {
         });
     }
   }, [token]);
+
+  useEffect(() => {
+    // Проверка, чтобы включить кнопку "Сохранить"
+    const shouldEnableButton =
+      (payments.cardNumber ||
+        (payments.corrAccount && payments.bic && payments.accountNumber) ||
+        (payments.cardNumber &&
+          payments.corrAccount &&
+          payments.bic &&
+          payments.accountNumber)) &&
+      JSON.stringify(payments) !== JSON.stringify(initialPayments); // Сравнение с начальными данными
+
+    setEnableButton(shouldEnableButton);
+  }, [payments, initialPayments]);
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
@@ -134,7 +157,12 @@ const Bank = () => {
       setValidationErrors(errors);
       return; // Если есть ошибки, форма не отправляется
     }
+    if (enableButton) {
+      setShowModalSave(true);
+    }
+  };
 
+  const handleConfirmSubmit = async () => {
     try {
       // Submit bank details data
       const response = await axios.post(
@@ -144,111 +172,125 @@ const Bank = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       console.log(response);
       localStorage.removeItem("paymentsData");
       console.log("Response:", response.data);
-      navigate("/profile");
-      // const response_ = await axios.post(
-      //   "https://api.intelectpravo.ru/profile/confirm",
-      //   payments,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
-
-      // if (response_.data) {
-      //   // Remove token from cookies
-      //   cookies.remove("token", { path: "/" });
-
-      //   // Redirect to the homepage
-      //   navigate("/");
-
-      //   // Set success message
-      //   setMessage(response_.data.message);
-
-      //   // Remove draft after successful submission
-      //   localStorage.removeItem("paymentsData");
-      // }
+      navigate("/profile/?info=2");
     } catch (error) {
       console.log(error);
       // Optionally, set an error message here
     }
   };
 
+  console.log(payments);
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[500px] mx-auto w-full"
-    >
-      <h3 className="font-semibold text-xl">Реквизиты пользователя</h3>
-
-      <Input
-        label="НОМЕР БАНКОВСКОЙ КАРТЫ"
-        type="text"
-        name="cardNumber"
-        value={payments.cardNumber || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.cardNumber && (
-        <span className="text-red-600">{validationErrors.cardNumber}</span>
-      )}
-
-      <Input
-        label="РАСЧЕТНЫЙ СЧЁТ"
-        type="text"
-        name="accountNumber"
-        value={payments.accountNumber || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.accountNumber && (
-        <span className="text-red-600">{validationErrors.accountNumber}</span>
-      )}
-
-      <Input
-        label="КОРРЕСПОНДЕТСКИЙ СЧЁТ"
-        type="text"
-        name="corrAccount"
-        value={payments.corrAccount || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.corrAccount && (
-        <span className="text-red-600">{validationErrors.corrAccount}</span>
-      )}
-
-      <Input
-        label="БИК БАНКА"
-        type="text"
-        name="bic"
-        value={payments.bic || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.bic && (
-        <span className="text-red-600">{validationErrors.bic}</span>
-      )}
-
-      {/* <AcceptAll name="accept" /> */}
-      {message !== "" && <span>{message}</span>}
-      <button
-        type="submit"
-        className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
+    <>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[500px] mx-auto w-full"
       >
-        Сохранить изменения
-      </button>
-      <a
-        href="/profile"
-        className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
-      >
-        Назад
-      </a>
-    </form>
+        <h3 className="font-semibold text-xl">Банковские реквизиты</h3>
+        {payments.updatedAt && (
+          <p>
+            Сохранено{" "}
+            {new Date(payments.updatedAt).toLocaleDateString("ru-RU", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+            г в{" "}
+            {new Date(payments.updatedAt).toLocaleTimeString("ru-RU", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        )}
+
+        <Input
+          label="Номер банковской карты"
+          type="text"
+          name="cardNumber"
+          value={payments.cardNumber || ""}
+          onChange={HandleInput}
+        />
+        {validationErrors.cardNumber && (
+          <span className="text-red-600">{validationErrors.cardNumber}</span>
+        )}
+
+        <Input
+          label="Рассчетный счёт"
+          type="text"
+          name="accountNumber"
+          value={payments.accountNumber || ""}
+          onChange={HandleInput}
+        />
+        {validationErrors.accountNumber && (
+          <span className="text-red-600">{validationErrors.accountNumber}</span>
+        )}
+
+        <Input
+          label="Корреспондентский счёт"
+          type="text"
+          name="corrAccount"
+          value={payments.corrAccount || ""}
+          onChange={HandleInput}
+        />
+        {validationErrors.corrAccount && (
+          <span className="text-red-600">{validationErrors.corrAccount}</span>
+        )}
+
+        <Input
+          label="БИК банка"
+          type="text"
+          name="bic"
+          value={payments.bic || ""}
+          onChange={HandleInput}
+        />
+        {validationErrors.bic && (
+          <span className="text-red-600">{validationErrors.bic}</span>
+        )}
+
+        {/* <AcceptAll name="accept" /> */}
+        {message !== "" && <span>{message}</span>}
+        <button
+          type="submit"
+          disabled={!enableButton}
+          className={`${enableButton ? `bg-blue-600` : `bg-gray-500`} rounded-xl text-white transition hover:scale-105`}
+        >
+          Сохранить
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            enableButton
+              ? setShowModalBack(!showModalBack)
+              : navigate("/profile");
+          }}
+          className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
+        >
+          Вернуться в меню учетной записи
+        </button>
+      </form>
+      {showModalBack && (
+        <AlertModal
+          title="Данные были изменены. Выйти без сохранения?"
+          message=""
+          onConfirm={() => navigate("/profile")}
+          onCancel={() => setShowModalBack(!showModalBack)}
+        />
+      )}
+      {showModalSave && (
+        <AlertModal
+          title="Вы точно хотите сохранить данные?"
+          message=""
+          onConfirm={handleConfirmSubmit}
+          onCancel={() => setShowModalSave(!showModalSave)}
+        />
+      )}
+    </>
   );
 };
 

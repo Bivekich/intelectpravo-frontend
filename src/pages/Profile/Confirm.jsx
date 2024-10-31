@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Input from "../../components/Input";
 import Cookies from "universal-cookie";
 import axios from "axios";
-import AcceptAll from "../../components/AcceptAll";
+import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
+
 import { useNavigate } from "react-router-dom";
 
 // Время жизни данных в миллисекундах (5 минут = 300000 мс)
@@ -45,8 +46,12 @@ const Confirm = () => {
   const cookies = new Cookies();
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const [inoy, setInoy] = useState(false);
   const [error, setError] = useState(""); // Для вывода ошибок (например, превышение размера файла)
   const [validationErrors, setValidationErrors] = useState({});
+  const [showModalBack, setShowModalBack] = useState(false);
+  const [showModalSave, setShowModalSave] = useState(false);
+  const formRef = useRef(null);
   const [profile, setProfile] = useState({
     name: "",
     surname: "",
@@ -60,14 +65,18 @@ const Confirm = () => {
     address: "",
     passportIssuedDate: "",
     passportIssuedBy: "",
+    inoy: "",
     documentPhoto: null,
   });
+  const [originalProfile, setOriginalProfile] = useState(null); // Исходные данные для сравнения
+  const [isButtonEnabled, setIsButtonEnabled] = useState(false); // Состояние кнопки
   const token = cookies.get("token");
 
   useEffect(() => {
     const savedProfile = getFromLocalStorage("profileData");
     if (savedProfile) {
       setProfile(savedProfile);
+      setOriginalProfile(savedProfile);
     } else {
       axios({
         method: "get",
@@ -79,22 +88,38 @@ const Confirm = () => {
         .then((response) => {
           setMessage(
             response.data.isConfirmed
-              ? "Профиль подтвержден"
-              : "Чтобы подтвердить профиль, необходимо заполнить все поля данной формы и все поля формы с реквизитами"
+              ? "Подтвержденная учётная запись"
+              : "Чтобы подтвердить профиль, необходимо заполнить все поля данной формы и все поля формы с реквизитами",
           );
           setProfile(response.data);
+          if (response.data.inoy) {
+            setInoy(true);
+          } else {
+            setInoy(false);
+          }
         })
         .catch((error) => {
           console.log(error);
         });
+      setOriginalProfile({});
     }
   }, [token]);
+
+  useEffect(() => {
+    if (originalProfile) {
+      const isProfileChanged =
+        JSON.stringify(profile) !== JSON.stringify(originalProfile);
+      setIsButtonEnabled(isProfileChanged); // Activates button if data is changed
+    }
+    // console.log(originalProfile);
+  }, [profile, originalProfile]);
 
   const validateForm = () => {
     const errors = {};
     const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
     const phoneRegex = /^\+7\d{10}$/;
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex =
+      /^[A-Za-z0-9._%+-]{1,30}@[A-Za-z0-9.-]{1,30}\.[A-Za-z]{1,5}$/;
     const issuedByRegex = /^[А-ЯЁа-яё\s-]+$/; // Разрешаем только кириллицу, пробелы, точки, запятые и тире
     const minYear = 1900;
 
@@ -120,7 +145,8 @@ const Confirm = () => {
     }
 
     if (!phoneRegex.test(profile.phoneNumber)) {
-      errors.phoneNumber = "Номер телефона должен быть в формате +7XXXXXXXXXX";
+      errors.phoneNumber =
+        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).";
     }
 
     if (!profile.address) {
@@ -257,6 +283,16 @@ const Confirm = () => {
       return;
     }
 
+    setShowModalSave(!showModalSave);
+  };
+
+  const formatDateForInput = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toISOString().split("T")[0];
+  };
+
+  const handleConfirmSubmit = async () => {
     const { documentPhoto, ...profileData } = profile;
 
     try {
@@ -273,7 +309,7 @@ const Confirm = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       console.log(updateResponse);
       // If documentPhoto is an object (likely a file), convert it to a string format for localStorage
@@ -290,224 +326,288 @@ const Confirm = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
         console.log(huy);
       }
-      navigate("/profile");
+      navigate("/profile/?info=1");
     } catch (error) {
       console.error(error);
     }
   };
 
-  const formatDateForInput = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toISOString().split("T")[0];
-  };
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[600px] w-full"
-    >
-      <h3 className="font-semibold text-xl">Подтверждение профиля</h3>
+    <>
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[600px] w-full"
+      >
+        <h3 className="font-semibold text-xl">
+          Редактирование паспортных и контактных данных
+        </h3>
+        <p>
+          Сохранено{" "}
+          {new Date(profile.updatedAt).toLocaleDateString("ru-RU", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+          г в{" "}
+          {new Date(profile.updatedAt).toLocaleTimeString("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
 
-      <Input
-        label="Email"
-        type="email"
-        name="email"
-        value={profile.email}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.email && (
-        <span className="text-red-600">{validationErrors.email}</span>
-      )}
-
-      <Input
-        label="Фамилия"
-        type="text"
-        name="surname"
-        value={profile.surname || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.surname && (
-        <span className="text-red-600">{validationErrors.surname}</span>
-      )}
-
-      <Input
-        label="Имя"
-        type="text"
-        name="name"
-        value={profile.name || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.name && (
-        <span className="text-red-600">{validationErrors.name}</span>
-      )}
-
-      <Input
-        label="Отчество"
-        type="text"
-        name="patronymic"
-        value={profile.patronymic || ""}
-        onChange={HandleInput}
-      />
-      {validationErrors.patronymic && (
-        <span className="text-red-600">{validationErrors.patronymic}</span>
-      )}
-
-      <Input
-        label="Номер телефона"
-        type="text"
-        name="phoneNumber"
-        value={profile.phoneNumber || ""}
-        onChange={handlePhoneChange}
-        required
-        placeholder="+7XXXXXXXXXX"
-      />
-      {validationErrors.phoneNumber && (
-        <span className="text-red-600">{validationErrors.phoneNumber}</span>
-      )}
-
-      <Input
-        label="Адрес"
-        type="text"
-        name="address"
-        value={profile.address || ""}
-        onChange={HandleInput}
-        required
-        maxLength={280}
-        placeholder="Например: 123456, Город, Улица, 10, 5"
-      />
-      {validationErrors.address && (
-        <span className="text-red-600">{validationErrors.address}</span>
-      )}
-
-      <Input
-        label="Дата рождения"
-        type="date"
-        name="birthDate"
-        value={formatDateForInput(profile.birthDate) || ""}
-        onChange={HandleInput}
-        required
-      />
-      {validationErrors.birthDate && (
-        <span className="text-red-600">{validationErrors.birthDate}</span>
-      )}
-
-      <Input
-        label="Серия паспорта"
-        type="text"
-        name="passportSeries"
-        value={profile.passportSeries || ""}
-        onChange={handleNumericInput} // Изменение обработчика
-        required
-      />
-      {validationErrors.passportSeries && (
-        <span className="text-red-600">{validationErrors.passportSeries}</span>
-      )}
-
-      <Input
-        label="Номер паспорта"
-        type="text"
-        name="passportNumber"
-        value={profile.passportNumber || ""}
-        onChange={handleNumericInput} // Изменение обработчика
-        required
-      />
-      {validationErrors.passportNumber && (
-        <span className="text-red-600">{validationErrors.passportNumber}</span>
-      )}
-
-      <Input
-        label="Код подразделения"
-        type="text"
-        name="passportCode"
-        value={profile.passportCode || ""}
-        onChange={handleNumericInputCode} // Изменение обработчика
-        required
-      />
-      {validationErrors.passportCode && (
-        <span className="text-red-600">{validationErrors.passportCode}</span>
-      )}
-
-      <Input
-        label="Когда выдан"
-        type="date"
-        name="passportIssuedDate"
-        value={formatDateForInput(profile.passportIssuedDate) || ""}
-        onChange={HandleInput}
-      />
-      {validationErrors.passportIssuedDate && (
-        <span className="text-red-600">
-          {validationErrors.passportIssuedDate}
-        </span>
-      )}
-
-      <Input
-        label="Кем выдан"
-        type="text"
-        name="passportIssuedBy"
-        value={profile.passportIssuedBy || ""}
-        onChange={HandleInput}
-      />
-      {validationErrors.passportIssuedBy && (
-        <span className="text-red-600">
-          {validationErrors.passportIssuedBy}
-        </span>
-      )}
-
-      {profile.documentPhoto && (
-        <div className="flex flex-col gap-3">
-          {typeof profile.documentPhoto === "string" ? (
-            <img src={profile.documentPhoto} alt="Uploaded Document" />
-          ) : (
-            <p>{profile.documentPhoto.name}</p>
-          )}
-          <button
-            type="button"
-            onClick={removePhoto}
-            className="bg-red-500 text-white rounded-lg p-2"
-          >
-            Удалить фото
-          </button>
-        </div>
-      )}
-      {!profile.documentPhoto && (
         <Input
-          label="Фотография документа"
-          type="file"
-          name="documentPhoto"
-          accept=".png, .jpg, .jpeg"
-          onChange={handleFileChange}
+          label="Электронная почта"
+          type="email"
+          name="email"
+          value={profile.email}
+          onChange={HandleInput}
           required
         />
-      )}
-      {validationErrors.documentPhoto && (
-        <span className="text-red-600">{validationErrors.documentPhoto}</span>
-      )}
+        {validationErrors.email && (
+          <span className="text-red-600">{validationErrors.email}</span>
+        )}
 
-      {/* <AcceptAll name="accept" /> */}
-      {error && <span className="text-red-600">{error}</span>}
-      {message && <span>{message}</span>}
+        <Input
+          label="Фамилия"
+          type="text"
+          name="surname"
+          value={profile.surname || ""}
+          onChange={HandleInput}
+          required
+        />
+        {validationErrors.surname && (
+          <span className="text-red-600">{validationErrors.surname}</span>
+        )}
 
-      <button
-        type="submit"
-        className="bg-blue-600 rounded-xl text-white p-2 transition hover:scale-105"
-      >
-        {profile.isConfirmed ? "Сохранить" : "Подтвердить профиль"}
-      </button>
-      <a
-        href="/profile"
-        className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
-      >
-        Назад
-      </a>
-    </form>
+        <Input
+          label="Имя"
+          type="text"
+          name="name"
+          value={profile.name || ""}
+          onChange={HandleInput}
+          required
+        />
+        {validationErrors.name && (
+          <span className="text-red-600">{validationErrors.name}</span>
+        )}
+
+        <Input
+          label="Отчество"
+          type="text"
+          name="patronymic"
+          value={profile.patronymic || ""}
+          onChange={HandleInput}
+        />
+        {validationErrors.patronymic && (
+          <span className="text-red-600">{validationErrors.patronymic}</span>
+        )}
+
+        <Input
+          label="Номер телефона"
+          type="text"
+          name="phoneNumber"
+          value={profile.phoneNumber || ""}
+          onChange={handlePhoneChange}
+          required
+          placeholder="+7XXXXXXXXXX"
+        />
+        {validationErrors.phoneNumber && (
+          <span className="text-red-600">{validationErrors.phoneNumber}</span>
+        )}
+
+        <Input
+          label="Адрес"
+          type="text"
+          name="address"
+          value={profile.address || ""}
+          onChange={HandleInput}
+          required
+          maxLength={280}
+          placeholder="Например: 123456, Город, Улица, 10, 5"
+        />
+        {validationErrors.address && (
+          <span className="text-red-600">{validationErrors.address}</span>
+        )}
+
+        <Input
+          label="Дата рождения"
+          type="date"
+          name="birthDate"
+          value={formatDateForInput(profile.birthDate) || ""}
+          onChange={HandleInput}
+          required
+        />
+        {validationErrors.birthDate && (
+          <span className="text-red-600">{validationErrors.birthDate}</span>
+        )}
+        {!inoy ? (
+          <>
+            <Input
+              label="Серия паспорта"
+              type="text"
+              name="passportSeries"
+              value={profile.passportSeries || ""}
+              onChange={handleNumericInput} // Изменение обработчика
+              required
+            />
+            {validationErrors.passportSeries && (
+              <span className="text-red-600">
+                {validationErrors.passportSeries}
+              </span>
+            )}
+
+            <Input
+              label="Номер паспорта"
+              type="text"
+              name="passportNumber"
+              value={profile.passportNumber || ""}
+              onChange={handleNumericInput} // Изменение обработчика
+              required
+            />
+            {validationErrors.passportNumber && (
+              <span className="text-red-600">
+                {validationErrors.passportNumber}
+              </span>
+            )}
+
+            <Input
+              label="Код подразделения"
+              type="text"
+              name="passportCode"
+              value={profile.passportCode || ""}
+              onChange={handleNumericInputCode} // Изменение обработчика
+              required
+            />
+            {validationErrors.passportCode && (
+              <span className="text-red-600">
+                {validationErrors.passportCode}
+              </span>
+            )}
+
+            <Input
+              label="Когда выдан"
+              type="date"
+              name="passportIssuedDate"
+              value={formatDateForInput(profile.passportIssuedDate) || ""}
+              onChange={HandleInput}
+            />
+            {validationErrors.passportIssuedDate && (
+              <span className="text-red-600">
+                {validationErrors.passportIssuedDate}
+              </span>
+            )}
+
+            <Input
+              label="Кем выдан"
+              type="text"
+              name="passportIssuedBy"
+              value={profile.passportIssuedBy || ""}
+              onChange={HandleInput}
+            />
+            {validationErrors.passportIssuedBy && (
+              <span className="text-red-600">
+                {validationErrors.passportIssuedBy}
+              </span>
+            )}
+          </>
+        ) : (
+          <>
+            <Input
+              label="Иное"
+              type="text"
+              name="inoy"
+              value={profile.inoy || ""}
+              maxLength={100}
+              onChange={HandleInput}
+            />
+          </>
+        )}
+        <label>
+          <input
+            type="checkbox"
+            onChange={() => setInoy(!inoy)}
+            checked={inoy}
+          />{" "}
+          Иное
+        </label>
+        {profile.documentPhoto && (
+          <div className="flex flex-col gap-3">
+            {typeof profile.documentPhoto === "string" ? (
+              <>
+                <span>Фото документа, удостоверяющего личность</span>
+                <img src={profile.documentPhoto} alt="Uploaded Document" />
+              </>
+            ) : (
+              <p>{profile.documentPhoto.name}</p>
+            )}
+            <button
+              type="button"
+              onClick={removePhoto}
+              className="bg-red-500 text-white rounded-lg p-2"
+            >
+              Удалить фото
+            </button>
+          </div>
+        )}
+        {!profile.documentPhoto && (
+          <Input
+            label="Фотография документа"
+            type="file"
+            name="documentPhoto"
+            accept=".png, .jpg, .jpeg"
+            onChange={handleFileChange}
+            required
+          />
+        )}
+        {validationErrors.documentPhoto && (
+          <span className="text-red-600">{validationErrors.documentPhoto}</span>
+        )}
+
+        {/* <AcceptAll name="accept" /> */}
+        {error && <span className="text-red-600">{error}</span>}
+        {message && <span>{message}</span>}
+
+        <button
+          type="submit"
+          className={`py-2 px-4 rounded-xl ${isButtonEnabled ? "bg-blue-600" : "bg-gray-400"} text-white`}
+          disabled={!isButtonEnabled}
+        >
+          {profile.isConfirmed ? "Сохранить данные" : "Сохранить данные"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            isButtonEnabled
+              ? setShowModalBack(!showModalBack)
+              : navigate("/profile");
+          }}
+          className="bg-gray-400 text-gray-500 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
+        >
+          Вернуться в меню учётной записи
+        </button>
+      </form>
+      {showModalBack && (
+        <AlertModal
+          title="Данные были изменены. Выйти без сохранения?"
+          message=""
+          onConfirm={() => navigate("/profile")}
+          onCancel={() => setShowModalBack(!showModalBack)}
+        />
+      )}
+      {showModalSave && (
+        <AlertModal
+          title="Вы точно хотите сохранить данные?"
+          message=""
+          onConfirm={handleConfirmSubmit}
+          onCancel={() => setShowModalSave(!showModalSave)}
+        />
+      )}
+    </>
   );
 };
 

@@ -3,6 +3,7 @@ import axios from "axios"; // Import axios
 import Input from "../components/Input";
 import Cookies from "universal-cookie";
 import { useNavigate, useParams } from "react-router-dom"; // Import useNavigate
+import md5 from "md5";
 
 const ConfirmAction = () => {
   const { action } = useParams();
@@ -39,7 +40,7 @@ const ConfirmAction = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       // Successful response, status will be 2xx
@@ -66,6 +67,53 @@ const ConfirmAction = () => {
           const producttobuy = localStorage.getItem("producttobuy");
           localStorage.setItem("product", producttobuy);
           navigate(`/buy/product/${producttobuy}`);
+        } else if (action == "restorepass") {
+          try {
+            const newpass = localStorage.getItem("newpass");
+
+            const response1 = await axios.post(
+              `https://api.intelectpravo.ru/profile/restore-password`,
+              {
+                newPassword: md5(newpass),
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            );
+
+            if (response1.status === 200) {
+              setMessage("");
+              cookies.remove("token");
+              cookies.remove("phone");
+              cookies.remove("page");
+              navigate("/auth");
+            }
+          } catch (error) {
+            console.error("An error occurred:", error);
+            setMessage(error.response?.data?.message || "Произошла ошибка.");
+          }
+        } else if (action == "") {
+          const currentPassword = localStorage.getItem("currentPassword");
+          const newPassword = localStorage.getItem("newPassword");
+
+          const response = await axios.post(
+            "https://api.intelectpravo.ru/profile/change-password", // Измените URL на свой
+            {
+              currentPassword: md5(currentPassword),
+              newPassword: md5(newPassword),
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          if (response.status === 200) {
+            navigate("/profile/?info=3");
+          }
         }
       }
     } catch (error) {

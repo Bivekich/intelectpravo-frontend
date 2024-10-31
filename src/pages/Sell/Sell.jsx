@@ -5,6 +5,7 @@ import Cookies from "universal-cookie";
 import React, { useState, useEffect } from "react";
 import FormData from "form-data";
 import Loader from "../../components/Loader";
+import { Link } from "react-router-dom";
 
 const Sell = () => {
   const cookies = new Cookies();
@@ -16,6 +17,7 @@ const Sell = () => {
   const [message, setMessage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isFreeDeal, setIsFreeDeal] = useState(false);
   const [file, setFile] = useState({
     title: "",
     description: "",
@@ -43,10 +45,18 @@ const Sell = () => {
   const HandleInput = (e) => {
     const { name, value } = e.target;
 
-    // Character limits
+    // Restrict input for price
     let limitedValue = value;
-    if (name === "title" && value.length > 50) {
-      limitedValue = value.slice(0, 50);
+    if (name === "price") {
+      limitedValue = limitedValue.replace(/[^\d,]/g, ""); // Allow only digits and commas
+      const parts = limitedValue.split(",");
+      if (parts[0].length > 8) parts[0] = parts[0].slice(0, 8); // Limit integer part to 8 digits
+      if (parts[1]) parts[1] = parts[1].slice(0, 2); // Limit decimal part to 2 digits
+      limitedValue = parts.join(",");
+    }
+
+    if (name === "title" && value.length > 100) {
+      limitedValue = value.slice(0, 100);
     }
     if (name === "description" && value.length > 250) {
       limitedValue = value.slice(0, 250);
@@ -65,12 +75,14 @@ const Sell = () => {
 
   const HandleCheckbox = (e) => {
     const { name, checked } = e.target;
-    const updatedFile = {
-      ...file,
-      [name]: checked,
-    };
-    setFile(updatedFile);
-    saveToLocalStorage(updatedFile);
+    if (name === "isFreeDeal") {
+      setIsFreeDeal(checked);
+      setFile({ ...file, price: checked ? "" : file.price });
+    } else {
+      const updatedFile = { ...file, [name]: checked };
+      setFile(updatedFile);
+      saveToLocalStorage(updatedFile);
+    }
   };
 
   const HandleSelect = (e) => {
@@ -96,11 +108,11 @@ const Sell = () => {
 
   const validateForm = () => {
     let formErrors = {};
-    // Check required fields
     if (!file.title) formErrors.title = "Название произведения обязательно";
     if (!file.description) formErrors.description = "Описание обязательно";
-    if (!file.price || isNaN(file.price))
+    if (!isFreeDeal && (!file.price || isNaN(file.price.replace(",", ".")))) {
       formErrors.price = "Цена должна быть числом";
+    }
     if (!file.saleType) formErrors.saleType = "Тип продажи обязателен";
     if (license && (!file.licenseTerm || isNaN(file.licenseTerm))) {
       formErrors.licenseTerm = "Срок лицензии должен быть числом";
@@ -125,7 +137,7 @@ const Sell = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -134,7 +146,7 @@ const Sell = () => {
         formData.append("file", file.file);
         formData.append("title", file.title);
         formData.append("description", file.description);
-        formData.append("price", file.price);
+        formData.append("price", isFreeDeal ? "0,00" : file.price);
         formData.append("accountNumber", file.accountNumber);
         formData.append("saleType", file.saleType);
         formData.append("isExclusive", file.isExclusive);
@@ -148,11 +160,10 @@ const Sell = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
         if (response1.status === 200) {
-          setLoading(false); // Ensure loading is stopped in case of success or error
-
+          setLoading(false);
           alert("Произведение опубликовано на продажу");
           setMessage("Произведение опубликовано на продажу");
           localStorage.removeItem("formData");
@@ -165,28 +176,27 @@ const Sell = () => {
       }
       console.error(
         "Error:",
-        error.response ? error.response.data : error.message
+        error.response ? error.response.data : error.message,
       );
     } finally {
-      setLoading(false); // Ensure loading is stopped in case of success or error
+      setLoading(false);
     }
   };
 
   const handleSubmitForConfirmation = async (e) => {
     e.preventDefault();
-    console.log(1);
     setLoading(true);
     try {
-      if (!validateForm()) return; // Stop submission if validation fails
+      if (!validateForm()) return;
       const response = await axios.post(
         "https://api.intelectpravo.ru/profile/verify-action",
-        { phoneNumber: phone }, // Send phone number
+        { phoneNumber: phone },
         {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
       console.log("Response:", response.data);
       setGetCode(true);
@@ -197,7 +207,7 @@ const Sell = () => {
   };
 
   return loading ? (
-    <div className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full">
+    <div className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[600px] w-full">
       <Loader />
     </div>
   ) : (
@@ -205,7 +215,9 @@ const Sell = () => {
       onSubmit={getCode ? handleSubmit : handleSubmitForConfirmation}
       className="flex flex-col mx-auto gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
     >
-      <h3 className="font-semibold text-xl">Реквизиты пользователя</h3>
+      <h3 className="font-semibold text-xl">
+        Формирование предложения по передаче прав на произведение
+      </h3>
 
       <Input
         label="Название произведения"
@@ -219,7 +231,7 @@ const Sell = () => {
       {errors.title && <span className="text-red-500">{errors.title}</span>}
 
       <Input
-        label="Описание"
+        label="Описание произведения"
         type="text"
         name="description"
         value={file.description || ""}
@@ -231,15 +243,28 @@ const Sell = () => {
         <span className="text-red-500">{errors.description}</span>
       )}
 
-      <Input
-        label="Цена"
-        type="text"
-        name="price"
-        value={file.price || ""}
-        onChange={HandleInput}
-        required
-        readOnly={getCode}
-      />
+      <div className="flex items-center flex-col gap-3">
+        <Input
+          label="Цена произведения"
+          type="text"
+          name="price"
+          value={isFreeDeal ? "0,00" : file.price || ""}
+          onChange={HandleInput}
+          required={!isFreeDeal}
+          readOnly={getCode || isFreeDeal}
+          style={{ backgroundColor: isFreeDeal ? "#f0f0f0" : "white" }}
+        />
+        <label className="ml-2 flex items-center">
+          <input
+            type="checkbox"
+            name="isFreeDeal"
+            checked={isFreeDeal}
+            onChange={HandleCheckbox}
+            disabled={getCode}
+          />
+          <span className="ml-2">Безвозмездная сделка</span>
+        </label>
+      </div>
       {errors.price && <span className="text-red-500">{errors.price}</span>}
 
       <Select
@@ -247,92 +272,90 @@ const Sell = () => {
         name="saleType"
         value={file.saleType || ""}
         onChange={HandleSelect}
-        options={[
-          { label: "Права", value: "rights" },
-          { label: "Лицензия", value: "license" },
-        ]}
         required
-        readOnly={getCode}
+        options={[
+          { value: "rights", label: "Отчуждение исключительных прав" },
+          { value: "license", label: "Передача лицензионных прав" },
+        ]}
       />
       {errors.saleType && (
         <span className="text-red-500">{errors.saleType}</span>
       )}
 
-      {getCode ? (
+      {license && (
         <>
-          <p>Ваш файл:</p>
-          {file.file && (
-            <a
-              href={`https://api.intelectpravo.ru/path/to/download/${file.file.name}`} // Replace with your file's download URL
-              className="text-blue-500 underline"
-              download // This attribute prompts the browser to download the file
-            >
-              {file.file.name}
-            </a>
+          <Input
+            label="Срок действия лицензии"
+            type="number"
+            name="licenseTerm"
+            value={file.isPermanent ? 99 : file.licenseTerm || ""}
+            onChange={HandleInput}
+            required={!file.isPermanent}
+            readOnly={getCode || file.isPermanent}
+            style={{ backgroundColor: file.isPermanent ? "#f0f0f0" : "white" }}
+          />
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              name="isExclusive"
+              checked={file.isExclusive}
+              onChange={HandleCheckbox}
+              disabled={getCode}
+            />
+            <span className="ml-2">Исключительная лицензия</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              name="isPermanent"
+              checked={file.isPermanent}
+              onChange={HandleCheckbox}
+              disabled={getCode}
+            />
+            <span className="ml-2">Бессрочная лицензия</span>
+          </label>
+          {errors.licenseTerm && (
+            <span className="text-red-500">{errors.licenseTerm}</span>
           )}
         </>
-      ) : (
-        <Input
-          label="Файл"
-          type="file"
-          name="file"
-          onChange={handleFileChange}
-          required
-          readOnly={getCode}
-        />
       )}
-
-      {errors.file && <span className="text-red-500">{errors.file}</span>}
-
-      <div className={`flex flex-row gap-2 ${!license ? "hidden" : ""}`}>
-        <input
-          type="checkbox"
-          name="isExclusive"
-          id="isExclusive"
-          onChange={HandleCheckbox}
-          checked={file.isExclusive || false}
-        />
-        <label htmlFor="isExclusive">Эксклюзивный</label>
-      </div>
 
       <Input
-        label="Срок лицензии (лет)"
-        type="text"
-        name="licenseTerm"
-        hidden={!license}
-        value={file.licenseTerm || ""}
-        onChange={HandleInput}
+        label="Электронный документ с произведением"
+        type="file"
+        name="file"
+        onChange={handleFileChange}
+        required
+        disabled={getCode}
       />
-      {errors.licenseTerm && (
-        <span className="text-red-500">{errors.licenseTerm}</span>
-      )}
+      {errors.file && <span className="text-red-500">{errors.file}</span>}
 
       {getCode && (
-        <>
-          <p>Введите код подтверждения который пршел Вам на телефон</p>
-          <Input
-            label="Код подтверждени"
-            type="text"
-            name="code"
-            value={code || ""}
-            onChange={(e) => setCode(e.target.value)}
-          />
-        </>
+        <Input
+          label="Код подтверждения"
+          type="text"
+          name="code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          required
+          disabled={getCode}
+        />
       )}
 
-      {message && <span>{message}</span>}
       <button
         type="submit"
-        className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
+        className={`py-2 px-4 rounded-xl ${!loading ? "bg-blue-600" : "bg-gray-400"} text-white`}
+        disabled={loading}
       >
-        Продать
+        {getCode ? "Подтвердить код" : "Сформировать предложение"}
       </button>
-      <a
-        href="/"
-        className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
+      <Link
+        to="/"
+        className="bg-gray-400 text-gray-500 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
       >
-        Назад
-      </a>
+        Вернуться в личный кабинет
+      </Link>
+      {message && <p className="text-green-500">{message}</p>}
     </form>
   );
 };

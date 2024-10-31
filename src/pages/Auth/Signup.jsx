@@ -26,7 +26,7 @@ const SignUp = () => {
         {
           phoneNumber: phone,
           code: code,
-        }
+        },
       );
 
       // Successful response, status will be 2xx

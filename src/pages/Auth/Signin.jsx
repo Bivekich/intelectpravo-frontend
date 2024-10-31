@@ -5,17 +5,34 @@ import Cookies from "universal-cookie";
 import axios from "axios";
 import AcceptAll from "../../components/AcceptAll";
 import md5 from "md5";
+import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
 
 const SignIn = () => {
   const navigate = useNavigate();
   const cookies = new Cookies();
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
   const cyrillicRegex = /^[А-ЯЁ][а-яё]+$/;
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
+  const emailRegex =
+    /^[A-Za-z0-9._%+-]{1,30}@[A-Za-z0-9.-]{1,30}\.[A-Za-z]{1,5}$/;
+  const [showModalEnterToProfile, setShowModalEnterToProfile] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   useEffect(() => {
     if (!cookies.get("page")) {
       cookies.set("page", "/signin", { path: "/" });
+    }
+
+    const savedProfile = localStorage.getItem("draftProfile");
+    const savedTime = localStorage.getItem("draftProfileTime");
+
+    if (savedProfile && savedTime) {
+      const timeElapsed = Date.now() - Number(savedTime);
+      if (timeElapsed < 5 * 60 * 1000) {
+        // 5 minutes
+        setProfile(JSON.parse(savedProfile));
+      } else {
+        localStorage.removeItem("draftProfile");
+        localStorage.removeItem("draftProfileTime");
+      }
     }
   }, []);
 
@@ -40,16 +57,12 @@ const SignIn = () => {
 
   const [passwordValidation, setPasswordValidation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    const savedProfile = localStorage.getItem("draftProfile");
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    }
-  }, []);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] =
+    useState(false);
 
   const saveDraftToLocalStorage = (data) => {
     localStorage.setItem("draftProfile", JSON.stringify(data));
+    localStorage.setItem("draftProfileTime", Date.now());
   };
 
   const validatePassword = (password) => {
@@ -68,7 +81,7 @@ const SignIn = () => {
     }
     if (!/[!@#$%^&*]/.test(password)) {
       errors.push(
-        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)."
+        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*).",
       );
     }
     return errors;
@@ -106,6 +119,26 @@ const SignIn = () => {
       }
     }
 
+    if (name === "phone") {
+      // Remove any non-numeric characters after "+7"
+      const sanitizedValue = value.replace(/\D/g, "");
+
+      if (!sanitizedValue.startsWith("7")) {
+        // Ensure it always starts with "+7"
+        setProfile((prevProfile) => ({
+          ...prevProfile,
+          phone: "+7" + sanitizedValue,
+        }));
+      } else if (sanitizedValue.length <= 11) {
+        // Limit the phone number to 11 digits after "+7"
+        setProfile((prevProfile) => ({
+          ...prevProfile,
+          phone: "+7" + sanitizedValue.slice(1), // Exclude the initial "7"
+        }));
+      }
+      return;
+    }
+
     if (name === "email" && value.length <= 100 && !emailRegex.test(value)) {
       setError("Неверный формат email.");
     } else {
@@ -125,10 +158,12 @@ const SignIn = () => {
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
+  const toggleShowPasswordConfirmmation = () => {
+    setShowPasswordConfirmation(!showPasswordConfirmation);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    cookies.remove("page");
 
     // Validate the form
     if (Object.values(validationError).some((msg) => msg !== "")) {
@@ -149,29 +184,30 @@ const SignIn = () => {
 
     setError("");
 
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmModal = async () => {
     try {
       // Check if the phone is already registered
       const loginResponse = await axios.post(
         "https://api.intelectpravo.ru/auth/login",
         {
           login: profile.phone,
-        }
+        },
       );
 
       if (loginResponse.status === 200) {
         setError("Пользователь с этим номером телефона уже зарегистрирован");
 
-        if (
-          confirm(
-            "Пользователь с этим номером телефона уже зарегистрирован. Войти?"
-          )
-        ) {
-          navigate("/auth");
-        }
+        setShowModalEnterToProfile(true);
+        setShowConfirmModal(false);
+
         return;
       }
     } catch (loginError) {
       // If the phone number is not registered (404), proceed with registration
+      console.log(loginError.response.status);
       if (loginError.response && loginError.response.status === 404) {
         try {
           // Register the new user
@@ -184,10 +220,11 @@ const SignIn = () => {
               patronymic: profile.patronymic,
               password: md5(profile.password),
               email: profile.email,
-            }
+            },
           );
 
           if (registerResponse.status === 200) {
+            cookies.remove("page");
             localStorage.removeItem("draftProfile");
             cookies.set("phone", profile.phone, { path: "/" });
             navigate("/signup");
@@ -198,19 +235,31 @@ const SignIn = () => {
       } else {
         console.error(
           "Произошла ошибка при проверке номера телефона:",
-          loginError
+          loginError,
         );
       }
     }
+    setShowConfirmModal(false);
   };
-
+  const handleConfirmEnterToProfile = () => {
+    // "Нет" button click handler - just close the modal
+    navigate("/auth");
+  };
+  const handleCancelConfirmModal = () => {
+    // "Нет" button click handler - just close the modal
+    setShowConfirmModal(false);
+  };
+  const handleCancelEnterToProfile = () => {
+    // "Нет" button click handler - just close the modal
+    setShowModalEnterToProfile(false);
+  };
   return (
     <>
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
       >
-        <h3 className="font-semibold text-xl">Регистрация</h3>
+        <h3 className="font-semibold text-xl">Создание учётной записи</h3>
         <Input
           label="Телефон"
           type="tel"
@@ -221,8 +270,8 @@ const SignIn = () => {
           maxLength={22}
         />
         <Input
-          label="Email"
-          type="email"
+          label="Электронная почта"
+          type="text"
           name="email"
           value={profile.email}
           onChange={handleInput}
@@ -267,7 +316,7 @@ const SignIn = () => {
         )}
         <div className="relative">
           <Input
-            label="Придумайте пароль"
+            label="Придумайте пароль учётной записи"
             type={showPassword ? "text" : "password"}
             name="password"
             value={profile.password}
@@ -293,9 +342,9 @@ const SignIn = () => {
                 <path
                   d="M2.99902 3L20.999 21M9.8433 9.91364C9.32066 10.4536 8.99902 11.1892 8.99902 12C8.99902 13.6569 10.3422 15 11.999 15C12.8215 15 13.5667 14.669 14.1086 14.133M6.49902 6.64715C4.59972 7.90034 3.15305 9.78394 2.45703 12C3.73128 16.0571 7.52159 19 11.9992 19C13.9881 19 15.8414 18.4194 17.3988 17.4184M10.999 5.04939C11.328 5.01673 11.6617 5 11.9992 5C16.4769 5 20.2672 7.94291 21.5414 12C21.2607 12.894 20.8577 13.7338 20.3522 14.5"
                   stroke="#535bf2"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             ) : (
@@ -310,16 +359,16 @@ const SignIn = () => {
                 <path
                   d="M15.0007 12C15.0007 13.6569 13.6576 15 12.0007 15C10.3439 15 9.00073 13.6569 9.00073 12C9.00073 10.3431 10.3439 9 12.0007 9C13.6576 9 15.0007 10.3431 15.0007 12Z"
                   stroke="#535bf2"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M12.0012 5C7.52354 5 3.73326 7.94288 2.45898 12C3.73324 16.0571 7.52354 19 12.0012 19C16.4788 19 20.2691 16.0571 21.5434 12C20.2691 7.94291 16.4788 5 12.0012 5Z"
                   stroke="#535bf2"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             )}
@@ -328,24 +377,92 @@ const SignIn = () => {
         {passwordValidation && (
           <span className="text-red-600">{passwordValidation}</span>
         )}
-        <Input
-          label="Подтвердите пароль"
-          type={showPassword ? "text" : "password"}
-          name="confirmPassword"
-          value={profile.confirmPassword}
-          onChange={handleInput}
-          required
-          maxLength={22}
-        />
+        <div className="relative">
+          <Input
+            label="Подтвердите пароль"
+            type={showPasswordConfirmation ? "text" : "password"}
+            name="confirmPassword"
+            value={profile.confirmPassword}
+            onChange={handleInput}
+            required
+            maxLength={22}
+          />
+          <button
+            type="button"
+            onClick={toggleShowPasswordConfirmmation}
+            className="absolute right-0 top-1/2 transform bg-transparent -translate-y-1/2 text-blue-500 border-0"
+            aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"} // Accessibility
+          >
+            {showPasswordConfirmation ? (
+              // Eye Slash SVG
+              <svg
+                width="20px"
+                height="20px"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.99902 3L20.999 21M9.8433 9.91364C9.32066 10.4536 8.99902 11.1892 8.99902 12C8.99902 13.6569 10.3422 15 11.999 15C12.8215 15 13.5667 14.669 14.1086 14.133M6.49902 6.64715C4.59972 7.90034 3.15305 9.78394 2.45703 12C3.73128 16.0571 7.52159 19 11.9992 19C13.9881 19 15.8414 18.4194 17.3988 17.4184M10.999 5.04939C11.328 5.01673 11.6617 5 11.9992 5C16.4769 5 20.2672 7.94291 21.5414 12C21.2607 12.894 20.8577 13.7338 20.3522 14.5"
+                  stroke="#535bf2"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              // Eye SVG
+              <svg
+                width="20px"
+                height="20px"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.0007 12C15.0007 13.6569 13.6576 15 12.0007 15C10.3439 15 9.00073 13.6569 9.00073 12C9.00073 10.3431 10.3439 9 12.0007 9C13.6576 9 15.0007 10.3431 15.0007 12Z"
+                  stroke="#535bf2"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12.0012 5C7.52354 5 3.73326 7.94288 2.45898 12C3.73324 16.0571 7.52354 19 12.0012 19C16.4788 19 20.2691 16.0571 21.5434 12C20.2691 7.94291 16.4788 5 12.0012 5Z"
+                  stroke="#535bf2"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+
         {error && <span className="text-red-600">{error}</span>}
         <AcceptAll name="accept" />
         <button
           type="submit"
           className="bg-blue-600 rounded-xl text-white transition hover:scale-105"
         >
-          Зарегистрироваться
+          Создать учётную запись
         </button>
       </form>
+      {showModalEnterToProfile && (
+        <AlertModal
+          title="Уведомление от администратора платформы intelectpravo.ru"
+          message="Учётная записи по указанному номеру существует. Хотите войти учётную запись?"
+          onConfirm={handleConfirmEnterToProfile}
+          onCancel={handleCancelEnterToProfile}
+        />
+      )}
+      {showConfirmModal && (
+        <AlertModal
+          title="Создать учетную запись на intelectpravo.ru"
+          message=""
+          onConfirm={handleConfirmModal}
+          onCancel={handleCancelConfirmModal}
+        />
+      )}
     </>
   );
 };
