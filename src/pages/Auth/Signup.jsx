@@ -19,13 +19,14 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
-
     try {
+      const response1 = await axios.get("https://api.ipify.org?format=json");
       const response = await axios.post(
         "https://api.intelectpravo.ru/auth/verify",
         {
           phoneNumber: phone,
           code: code,
+          ipAddress: response1.data.ip,
         },
       );
 

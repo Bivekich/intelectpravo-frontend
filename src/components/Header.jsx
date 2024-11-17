@@ -15,7 +15,7 @@ const Header = () => {
   const [headerVisible, setHeaderVisible] = useState(true); // состояние для видимости заголовка
   const [showModal, setShowModal] = useState(false); // Modal visibility state
 
-  const checkToken = () => {
+  const checkToken = async () => {
     const token = cookies.get("token");
     const currentPath = cookies.get("path");
     if (!token) {
@@ -42,6 +42,28 @@ const Header = () => {
         navigate("/", { replace: true });
       }
       // Если токен есть, загружаем данные профиля
+      const response1 = await axios.get("https://api.ipify.org?format=json");
+      axios({
+        method: "post",
+        url: "https://api.intelectpravo.ru/auth/checkSession",
+        data: {
+          token: token,
+          ipAddress: response1.data.ip,
+        },
+      })
+        .then((response) => {
+          if (response.status == 200) {
+            console.log(response.data);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          if (error.status == 404) {
+            handleConfirmExitProfile();
+          }
+          navigate("/auth", { replace: true });
+        });
+
       axios({
         method: "get",
         url: "https://api.intelectpravo.ru/profile/basic",
@@ -94,13 +116,38 @@ const Header = () => {
     setShowModal(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirmExitProfile = () => {
     // "Да" button click handler - navigate to registration
+    axios({
+      method: "post",
+      url: "https://api.intelectpravo.ru/auth/logout",
+      data: {
+        token: cookies.get("token"),
+      },
+    })
+      .then(function (response) {
+        // Successful response
+        console.log(response);
+        if (response.status === 200) {
+          cookies.set("phone", response.data.phone, { path: "/" });
+          cookies.remove("page");
+
+          navigate("/loginbypass");
+        }
+      })
+      .catch(function (error) {
+        if (error.response && error.response.status === 404) {
+          // Show modal when the account doesn't exist
+          setShowModal(true);
+        } else {
+          console.error("Произошла ошибка:", error);
+        }
+      });
     cookies.remove("email", { path: "/" });
     cookies.remove("phone", { path: "/" });
     cookies.remove("login", { path: "/" });
     cookies.remove("token", { path: "/" });
-    navigate("/");
+    window.location.reload();
     setShowModal(false);
   };
 
@@ -182,7 +229,7 @@ const Header = () => {
         <AlertModal
           title="Вы действительно хотите выйти из учётной записи?"
           message=""
-          onConfirm={handleConfirm}
+          onConfirm={handleConfirmExitProfile}
           onCancel={handleCancel}
         />
       )}

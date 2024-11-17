@@ -24,12 +24,17 @@ const Auth = () => {
   const handleInput = (e) => {
     let { name, value } = e.target;
 
-    // Automatically prepend +7 if not present and remove non-numeric characters
-    if (!value.startsWith("+7")) {
-      value = "+7" + value.replace(/\D/g, "");
+    // Remove any non-numeric characters (including letters) from the input
+    value = value.replace(/[^0-9]/g, ""); // Remove anything that isn't a digit
+
+    // Automatically prepend +7 if not present and format accordingly
+    if (!value.startsWith("7") && value.length > 0) {
+      value = "+7" + value.slice(1); // Ensure it starts with +7
+    } else {
+      value = "+7" + value.slice(1); // Always start with +7
     }
 
-    // Limit the input to +7 followed by 10 digits
+    // Limit the input to +7 followed by 10 digits (12 characters in total)
     if (value.length > 12) {
       value = value.slice(0, 12);
     }
@@ -143,7 +148,7 @@ const Auth = () => {
         onSubmit={handleSubmit}
         className="flex flex-col gap-5 px-10 py-5 border-2 rounded-2xl max-w-[400px] w-full"
       >
-        <h3 className="font-semibold text-xl">Вход в систему</h3>
+        <h3 className="font-semibold text-xl">Вход в личный кабинет</h3>
         <Input
           label="Введите номер телефона"
           type="tel"

@@ -90,6 +90,7 @@ const SignIn = () => {
   const handleInput = (e) => {
     const { name, value } = e.target;
 
+    // Максимальная длина для каждого поля
     const maxLength = {
       phone: 22,
       name: 22,
@@ -104,6 +105,7 @@ const SignIn = () => {
       return;
     }
 
+    // Валидация для имени, фамилии и отчества (только кириллица)
     if (["name", "surname", "patronymic"].includes(name)) {
       if (!cyrillicRegex.test(value)) {
         setValidationError((prevErrors) => ({
@@ -119,37 +121,60 @@ const SignIn = () => {
       }
     }
 
+    // Валидация для телефона (обработать формат +7 и ограничение длины)
     if (name === "phone") {
-      // Remove any non-numeric characters after "+7"
+      // Удаляем все нецифровые символы после "+7"
       const sanitizedValue = value.replace(/\D/g, "");
 
+      setValidationError((prevErrors) => ({
+        ...prevErrors,
+        [name]: "",
+      }));
       if (!sanitizedValue.startsWith("7")) {
-        // Ensure it always starts with "+7"
+        // Гарантируем, что номер начинается с "+7"
         setProfile((prevProfile) => ({
           ...prevProfile,
           phone: "+7" + sanitizedValue,
         }));
       } else if (sanitizedValue.length <= 11) {
-        // Limit the phone number to 11 digits after "+7"
+        // Ограничиваем длину номера до 11 цифр после "+7"
         setProfile((prevProfile) => ({
           ...prevProfile,
-          phone: "+7" + sanitizedValue.slice(1), // Exclude the initial "7"
+          phone: "+7" + sanitizedValue.slice(1), // Исключаем начальную "7"
         }));
+        if (sanitizedValue.length <= 10) {
+          setValidationError((prevErrors) => ({
+            ...prevErrors,
+            [name]:
+              "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).",
+          }));
+        }
       }
       return;
     }
 
-    if (name === "email" && value.length <= 100 && !emailRegex.test(value)) {
-      setError("Неверный формат email.");
-    } else {
-      setError("");
+    // Валидация для email
+    if (name === "email") {
+      if (value.length <= 100 && !emailRegex.test(value)) {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]: "Неверный формат email.",
+        }));
+      } else {
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]: "",
+        }));
+      }
     }
 
+    // Валидация пароля
     if (name === "password") {
       const passwordErrors = validatePassword(value);
       setPasswordValidation(passwordErrors.join(" "));
     }
 
+    // Обновление состояния профиля
     const updatedProfile = { ...profile, [name]: value };
     setProfile(updatedProfile);
     saveDraftToLocalStorage(updatedProfile);
@@ -224,8 +249,10 @@ const SignIn = () => {
           );
 
           if (registerResponse.status === 200) {
+            // console.log(registerResponse);
+
             cookies.remove("page");
-            localStorage.removeItem("draftProfile");
+            // localStorage.removeItem("draftProfile");
             cookies.set("phone", profile.phone, { path: "/" });
             navigate("/signup");
           }
@@ -269,6 +296,9 @@ const SignIn = () => {
           required
           maxLength={22}
         />
+        {validationError.phone && (
+          <span className="text-red-600">{validationError.phone}</span>
+        )}
         <Input
           label="Электронная почта"
           type="text"
@@ -278,6 +308,9 @@ const SignIn = () => {
           required
           maxLength={100}
         />
+        {validationError.email && (
+          <span className="text-red-600">{validationError.email}</span>
+        )}
         <Input
           label="Фамилия"
           type="text"
