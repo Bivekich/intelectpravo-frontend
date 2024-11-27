@@ -49,9 +49,7 @@ const Auth = () => {
       setErrorMessage("");
       setIsButtonDisabled(false);
     } else {
-      setErrorMessage(
-        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).",
-      );
+      setErrorMessage("Введите корректный адрес электронной почты");
       setIsButtonDisabled(true);
     }
   };
@@ -97,9 +95,7 @@ const Auth = () => {
 
     // Validate phone number
     if (!validatePhone(profile.login)) {
-      setErrorMessage(
-        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).",
-      );
+      setErrorMessage("Введите корректный адрес электронной почты");
       return;
     }
 

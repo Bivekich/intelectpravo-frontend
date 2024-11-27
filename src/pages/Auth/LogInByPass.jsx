@@ -33,6 +33,7 @@ const LogInByPass = () => {
       console.log(response);
       if (response.status === 200) {
         setMessage("");
+        cookies.set("email", response.data.email);
         cookies.remove("page");
         navigate("/signup");
         // Redirect to home after successful login

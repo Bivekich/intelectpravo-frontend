@@ -260,6 +260,16 @@ const Profile = () => {
           />
         )}
 
+        {profile.inoy && (
+          <Input
+            label="Иное"
+            type="text"
+            name="inoy"
+            value={profile.inoy}
+            readOnly
+          />
+        )}
+
         {profile.documentPhoto && (
           <>
             <span>Фото документа, удостоверяющего личность</span>

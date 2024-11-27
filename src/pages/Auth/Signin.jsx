@@ -145,8 +145,7 @@ const SignIn = () => {
         if (sanitizedValue.length <= 10) {
           setValidationError((prevErrors) => ({
             ...prevErrors,
-            [name]:
-              "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).",
+            [name]: "Введите корректный адрес электронной почты",
           }));
         }
       }
@@ -206,6 +205,8 @@ const SignIn = () => {
       setError(passwordErrors.join(" "));
       return;
     }
+
+    cookies.set("email", profile.email);
 
     setError("");
 

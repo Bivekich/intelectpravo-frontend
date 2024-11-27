@@ -145,44 +145,46 @@ const Confirm = () => {
     }
 
     if (!phoneRegex.test(profile.phoneNumber)) {
-      errors.phoneNumber =
-        "Введите корректный номер телефона (должен начинаться с +7 и содержать 10 цифр).";
+      errors.phoneNumber = "Введите корректный адрес электронной почты";
     }
 
     if (!profile.address) {
       errors.address = "Адрес обязателен для заполнения";
     }
 
-    if (!profile.passportSeries || profile.passportSeries.length !== 4) {
-      errors.passportSeries = "Серия паспорта должна содержать 4 цифры";
-    }
+    if (!inoy) {
+      if (!profile.passportSeries || profile.passportSeries.length !== 4) {
+        errors.passportSeries = "Серия паспорта должна содержать 4 цифры";
+      }
 
-    if (!profile.passportNumber || profile.passportNumber.length !== 6) {
-      errors.passportNumber = "Номер паспорта должен содержать 6 цифр";
-    }
+      if (!profile.passportNumber || profile.passportNumber.length !== 6) {
+        errors.passportNumber = "Номер паспорта должен содержать 6 цифр";
+      }
+      if (
+        !profile.passportCode ||
+        !/^\d{3}-\d{3}$/.test(profile.passportCode)
+      ) {
+        errors.passportCode =
+          "Код подразделения должен содержать 6 цифр и тире (формат: 123-456)";
+      }
+      if (!profile.passportIssuedDate) {
+        errors.passportIssuedDate = "Дата выдачи паспорта обязательна";
+      } else if (!validateYear(profile.passportIssuedDate)) {
+        errors.passportIssuedDate = `Дата выдачи паспорта должна быть не ранее ${minYear} и не в будущем.`;
+      }
 
-    if (!profile.passportCode || !/^\d{3}-\d{3}$/.test(profile.passportCode)) {
-      errors.passportCode =
-        "Код подразделения должен содержать 6 цифр и тире (формат: 123-456)";
+      if (!profile.passportIssuedBy) {
+        errors.passportIssuedBy = "Информация о выдаче паспорта обязательна";
+      } else if (!issuedByRegex.test(profile.passportIssuedBy)) {
+        errors.passportIssuedBy =
+          "Поле 'Кем выдан' может содержать только кириллицу, пробелы и тире.";
+      }
     }
 
     if (!profile.birthDate) {
       errors.birthDate = "Дата рождения обязательна";
     } else if (!validateYear(profile.birthDate)) {
       errors.birthDate = `Год рождения должен быть не ранее ${minYear} и не в будущем.`;
-    }
-
-    if (!profile.passportIssuedDate) {
-      errors.passportIssuedDate = "Дата выдачи паспорта обязательна";
-    } else if (!validateYear(profile.passportIssuedDate)) {
-      errors.passportIssuedDate = `Дата выдачи паспорта должна быть не ранее ${minYear} и не в будущем.`;
-    }
-
-    if (!profile.passportIssuedBy) {
-      errors.passportIssuedBy = "Информация о выдаче паспорта обязательна";
-    } else if (!issuedByRegex.test(profile.passportIssuedBy)) {
-      errors.passportIssuedBy =
-        "Поле 'Кем выдан' может содержать только кириллицу, пробелы и тире.";
     }
 
     if (!profile.documentPhoto) {
@@ -198,8 +200,20 @@ const Confirm = () => {
 
   const handleNumericInput = (e) => {
     const { name, value } = e.target;
-    const numericValue = value.replace(/\D/g, ""); // Убираем все, кроме цифр
+    // Убираем все, кроме цифр
+    let numericValue = value.replace(/[^\d]/g, "");
 
+    // Максимальная длина для каждого поля
+    const maxLengths = {
+      passportSeries: 4,
+      passportNumber: 6,
+      passportCode: 7,
+    };
+
+    // Ограничиваем длину вводимого значения
+    if (maxLengths[name]) {
+      numericValue = numericValue.slice(0, maxLengths[name]);
+    }
     setProfile((prevProfile) => ({
       ...prevProfile,
       [name]: numericValue,
@@ -209,9 +223,10 @@ const Confirm = () => {
     const { name, value } = e.target;
     const numericValue = value.replace(/[^\d-]/g, ""); // Убираем все, кроме цифр
 
+    // Обновляем состояние
     setProfile((prevProfile) => ({
       ...prevProfile,
-      [name]: numericValue,
+      [name]: numericValue.length > 7 ? numericValue.slice(0, 7) : numericValue,
     }));
   };
 
@@ -293,6 +308,16 @@ const Confirm = () => {
   };
 
   const handleConfirmSubmit = async () => {
+    if (inoy) {
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        passportSeries: "",
+        passportCode: "",
+        passportNumber: "",
+        passportIssuedDate: "",
+        passportIssuedBy: "",
+      }));
+    }
     const { documentPhoto, ...profileData } = profile;
 
     try {
