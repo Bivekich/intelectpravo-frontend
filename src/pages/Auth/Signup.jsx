@@ -10,6 +10,7 @@ const SignUp = () => {
   const [code, setCode] = useState(""); // Initialize state with an empty string
   const [encodedCode, setEncodedCode] = useState(""); // Initialize state with an empty string
   const [message, setMessage] = useState(""); // Initialize state with an empty string
+  const [cycle, setCycle] = useState(0); // Initialize state with an empty string
   const [changeProfile, setChangeProfile] = useState(false);
   const phone = cookies.get("phone");
   const email = cookies.get("email");
@@ -40,12 +41,9 @@ const SignUp = () => {
     localStorage.setItem("draftProfileTime", Date.now());
     cookies.set("draftProfileTime", Date.now(), { path: "/", maxAge: 10 * 60 }); // 10 минут
     // Установка таймера на 10 минут для удаления куков
-    const timer = setTimeout(
-      () => {
-        cookies.remove("draftProfileTime", { path: "/" });
-      },
-      10 * 60 * 1000,
-    ); // 10 минут в миллисекундах
+    const timer = setTimeout(() => {
+      cookies.remove("draftProfileTime", { path: "/" });
+    }, 10 * 60 * 1000); // 10 минут в миллисекундах
 
     // Очистка таймера при размонтировании компонента
     return () => clearTimeout(timer);
@@ -87,7 +85,7 @@ const SignUp = () => {
           code: code,
           encodedCode: encodedCode,
           ipAddress: response1.data.ip,
-        },
+        }
       );
 
       // Successful response, status will be 2xx
@@ -125,9 +123,11 @@ const SignUp = () => {
       "https://api.intelectpravo.ru/auth/resendCode",
       {
         phoneNumber: phone,
-      },
+      }
     );
     console.log(response);
+    localStorage.removeItem("timer");
+    setCycle(cycle + 1);
   };
 
   return (
@@ -142,7 +142,7 @@ const SignUp = () => {
         <br />
         Телефон: {phone}
       </h3>
-      <Timer />
+      <Timer cycle={cycle} />
       {message && <span>{message}</span>}
       <Input
         label="Код с телефона"

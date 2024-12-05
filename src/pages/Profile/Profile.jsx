@@ -77,11 +77,11 @@ const Profile = () => {
         setMessage(
           response.data.isConfirmed
             ? "Подтвержденная учётная запись"
-            : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты", после их заполнения Ваш профиль будет направлен администратору сайта на проверку',
+            : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты", после их заполнения Ваш профиль будет направлен администратору сайта на проверку'
         );
         if (response.data.toSend && !response.data.isConfirmed) {
           setMessage(
-            "Ваш профиль отправлен на подтверждение администраторам сайта. Ожидайте",
+            "Ваш профиль отправлен на подтверждение администраторам сайта. Ожидайте"
           );
         }
         setConfirmed(response.data.isConfirmed);
@@ -116,9 +116,10 @@ const Profile = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
       console.log("Response:", response.data);
+      localStorage.setItem("lastpage", "/profile");
       navigate("/profile/confirmaction/submitProfile");
     } catch (error) {
       console.error(error);

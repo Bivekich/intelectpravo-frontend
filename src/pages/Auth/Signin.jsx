@@ -81,7 +81,7 @@ const SignIn = () => {
     }
     if (!/[!@#$%^&*]/.test(password)) {
       errors.push(
-        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*).",
+        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)."
       );
     }
     return errors;
@@ -220,7 +220,7 @@ const SignIn = () => {
         "https://api.intelectpravo.ru/auth/login",
         {
           login: profile.phone,
-        },
+        }
       );
 
       if (loginResponse.status === 200) {
@@ -246,7 +246,7 @@ const SignIn = () => {
               patronymic: profile.patronymic,
               password: md5(profile.password),
               email: profile.email,
-            },
+            }
           );
 
           if (registerResponse.status === 200) {
@@ -263,7 +263,7 @@ const SignIn = () => {
       } else {
         console.error(
           "Произошла ошибка при проверке номера телефона:",
-          loginError,
+          loginError
         );
       }
     }

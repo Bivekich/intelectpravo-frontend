@@ -50,7 +50,7 @@ const Password = () => {
     }
     if (!/[!@#$%^&*]/.test(password)) {
       errors.push(
-        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*).",
+        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)."
       );
     }
     return errors;
@@ -103,12 +103,12 @@ const Password = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       localStorage.setItem("currentPassword", passwordData.currentPassword);
       localStorage.setItem("newPassword", passwordData.newPassword);
-
+      localStorage.setItem("lastpage", "/profile/changepass");
       navigate("/profile/confirmaction/changepass");
     } catch (error) {
       console.error("Ошибка при изменении пароля:", error);

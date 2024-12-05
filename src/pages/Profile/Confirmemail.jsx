@@ -31,7 +31,7 @@ const ConfirmEmail = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
       console.log(response);
       setMessage("Почта успешно изменена");

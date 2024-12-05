@@ -30,9 +30,10 @@ const Product = () => {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
-            },
+            }
           );
           console.log("Response:", response.data);
+          localStorage.setItem("lastpage", "/buy");
 
           localStorage.setItem("producttobuy", pid);
           navigate("/profile/confirmaction/buyproduct"); // Change this to your desired route
@@ -50,7 +51,7 @@ const Product = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
         console.log(saleResponse);
         setItem(saleResponse.data.sale);

@@ -59,7 +59,7 @@ const Email = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
       console.log(response);
       // Redirect to the homepage

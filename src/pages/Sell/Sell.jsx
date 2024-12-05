@@ -137,7 +137,7 @@ const Sell = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       if (response.status === 200) {
@@ -160,7 +160,7 @@ const Sell = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
-          },
+          }
         );
         if (response1.status === 200) {
           setLoading(false);
@@ -176,7 +176,7 @@ const Sell = () => {
       }
       console.error(
         "Error:",
-        error.response ? error.response.data : error.message,
+        error.response ? error.response.data : error.message
       );
     } finally {
       setLoading(false);
@@ -196,7 +196,7 @@ const Sell = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
       console.log("Response:", response.data);
       setGetCode(true);
@@ -344,7 +344,9 @@ const Sell = () => {
 
       <button
         type="submit"
-        className={`py-2 px-4 rounded-xl ${!loading ? "bg-blue-600" : "bg-gray-400"} text-white`}
+        className={`py-2 px-4 rounded-xl ${
+          !loading ? "bg-blue-600" : "bg-gray-400"
+        } text-white`}
         disabled={loading}
       >
         {getCode ? "Подтвердить код" : "Сформировать предложение"}

@@ -26,7 +26,7 @@ const LogInByPass = () => {
         {
           phoneNumber: phone,
           password: md5(password),
-        },
+        }
       );
 
       // Successful response, status will be 2xx

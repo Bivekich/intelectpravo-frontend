@@ -89,7 +89,7 @@ const Confirm = () => {
           setMessage(
             response.data.isConfirmed
               ? "Подтвержденная учётная запись"
-              : "Чтобы подтвердить профиль, необходимо заполнить все поля данной формы и все поля формы с реквизитами",
+              : "Чтобы подтвердить профиль, необходимо заполнить все поля данной формы и все поля формы с реквизитами"
           );
           setProfile(response.data);
           if (response.data.inoy) {
@@ -120,7 +120,7 @@ const Confirm = () => {
     const phoneRegex = /^\+7\d{10}$/;
     const emailRegex =
       /^[A-Za-z0-9._%+-]{1,30}@[A-Za-z0-9.-]{1,30}\.[A-Za-z]{1,5}$/;
-    const issuedByRegex = /^[А-ЯЁа-яё\s-]+$/; // Разрешаем только кириллицу, пробелы, точки, запятые и тире
+    const issuedByRegex = /^[А-ЯЁа-яё\s-.]+$/; // Разрешаем только кириллицу, пробелы, точки, запятые и тире
     const minYear = 1900;
 
     const validateYear = (dateStr) => {
@@ -334,7 +334,7 @@ const Confirm = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
       console.log(updateResponse);
       // If documentPhoto is an object (likely a file), convert it to a string format for localStorage
@@ -351,7 +351,7 @@ const Confirm = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
-          },
+          }
         );
         console.log(huy);
       }
@@ -599,7 +599,9 @@ const Confirm = () => {
 
         <button
           type="submit"
-          className={`py-2 px-4 rounded-xl ${isButtonEnabled ? "bg-blue-600" : "bg-gray-400"} text-white`}
+          className={`py-2 px-4 rounded-xl ${
+            isButtonEnabled ? "bg-blue-600" : "bg-gray-400"
+          } text-white`}
           disabled={!isButtonEnabled}
         >
           {profile.isConfirmed ? "Сохранить данные" : "Сохранить данные"}

@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from "react";
 
-const Timer = () => {
-  const initialTime = 10 * 60; // 10 минут в секундах
+const Timer = ({ cycle }) => {
+  const initialTime = 10 * 60; // 1 минута в секундах
   const [timeLeft, setTimeLeft] = useState(() => {
     const savedTime = localStorage.getItem("timer");
     return savedTime ? parseInt(savedTime, 10) : initialTime;
   });
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      localStorage.removeItem("timer");
-      return;
-    }
+    // Сброс таймера при изменении цикла
+    setTimeLeft(initialTime);
+    localStorage.setItem("timer", initialTime);
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
+        if (prevTime <= 0) {
+          clearInterval(timer);
+          localStorage.removeItem("timer");
+          return 0; // Убедитесь, что timeLeft не становится отрицательным
+        }
         const updatedTime = prevTime - 1;
         localStorage.setItem("timer", updatedTime);
         return updatedTime;
@@ -22,7 +26,7 @@ const Timer = () => {
     }, 1000);
 
     return () => clearInterval(timer); // Очистка таймера при размонтировании
-  }, [timeLeft]);
+  }, [cycle]); // Добавляем cycle в зависимости
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);

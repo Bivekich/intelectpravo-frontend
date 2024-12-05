@@ -42,10 +42,11 @@ const RestorePass = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
       if (response.status === 200) {
         localStorage.setItem("newpass", password);
+        localStorage.setItem("lastpage", "/restorepass");
         navigate("/profile/confirmaction/restorepass"); // Change this to your desired route
       }
       return;

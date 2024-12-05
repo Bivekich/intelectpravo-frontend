@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios"; // Import axios
 import Input from "../components/Input";
 import Cookies from "universal-cookie";
-import { useNavigate, useParams } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate, useParams } from "react-router-dom"; // Import useNavigate
 import md5 from "md5";
 import Timer from "../components/Timer";
 
@@ -12,21 +12,20 @@ const ConfirmAction = () => {
   const [code, setCode] = useState(""); // Initialize state with an empty string
   const [message, setMessage] = useState(""); // Initialize state with an empty string
   const [encodedCode, setEncodedCode] = useState(""); // Initialize state with an empty string
+  const [cycle, setCycle] = useState(0); // Initialize state with an empty string
   const phone = cookies.get("phone");
   const email = cookies.get("email");
   const token = cookies.get("token");
+  const lastpage = localStorage.getItem("lastpage");
   const navigate = useNavigate(); // Initialize navigate
 
   useEffect(() => {
     localStorage.setItem("draftProfileTime", Date.now());
     cookies.set("draftProfileTime", Date.now(), { path: "/", maxAge: 10 * 60 }); // 10 минут
     // Установка таймера на 10 минут для удаления куков
-    const timer = setTimeout(
-      () => {
-        cookies.remove("draftProfileTime", { path: "/" });
-      },
-      10 * 60 * 1000,
-    ); // 10 минут в миллисекундах
+    const timer = setTimeout(() => {
+      cookies.remove("draftProfileTime", { path: "/" });
+    }, 10 * 60 * 1000); // 10 минут в миллисекундах
 
     // Очистка таймера при размонтировании компонента
     return () => clearTimeout(timer);
@@ -83,7 +82,7 @@ const ConfirmAction = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       // Successful response, status will be 2xx
@@ -123,7 +122,7 @@ const ConfirmAction = () => {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
-              },
+              }
             );
 
             if (response1.status === 200) {
@@ -151,7 +150,7 @@ const ConfirmAction = () => {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
 
           if (response.status === 200) {
@@ -170,14 +169,17 @@ const ConfirmAction = () => {
     if (localStorage.getItem("timer")) {
       alert("Нельзя отправить повторный код, до истечения таймера");
       return;
+    } else {
+      const response = await axios.post(
+        "https://api.intelectpravo.ru/auth/resendCode",
+        {
+          phoneNumber: phone,
+        }
+      );
+      console.log(response);
+      localStorage.removeItem("timer");
+      setCycle(cycle + 1);
     }
-    const response = await axios.post(
-      "https://api.intelectpravo.ru/auth/resendCode",
-      {
-        phoneNumber: phone,
-      },
-    );
-    console.log(response);
   };
 
   return (
@@ -192,7 +194,7 @@ const ConfirmAction = () => {
         <br />
         Телефон: {phone}
       </h3>
-      <Timer />
+      <Timer cycle={cycle} />
       {message && <span>{message}</span>} {/* Only show message if not empty */}
       <Input
         label="Код с телефона"
@@ -217,6 +219,12 @@ const ConfirmAction = () => {
       >
         Выслать код повторно
       </button>
+      <Link
+        to={lastpage}
+        className="bg-transparent transition hover:scale-105 text-blue-400 hover:text-blue-400"
+      >
+        Вернуться
+      </Link>
       <button
         type="submit"
         className="bg-blue-600 rounded-xl text-white transition hover:scale-105"

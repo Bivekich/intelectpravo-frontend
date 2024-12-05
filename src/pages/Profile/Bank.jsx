@@ -172,7 +172,7 @@ const Bank = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
       console.log(response);
       localStorage.removeItem("paymentsData");
@@ -258,7 +258,9 @@ const Bank = () => {
         <button
           type="submit"
           disabled={!enableButton}
-          className={`${enableButton ? `bg-blue-600` : `bg-gray-500`} rounded-xl text-white transition hover:scale-105`}
+          className={`${
+            enableButton ? `bg-blue-600` : `bg-gray-500`
+          } rounded-xl text-white transition hover:scale-105`}
         >
           Сохранить
         </button>

@@ -36,7 +36,7 @@ const getItems = async (limit, offset, token, search = "") => {
   } catch (error) {
     console.error(
       "Error fetching items:",
-      error.response ? error.response.data : error.message,
+      error.response ? error.response.data : error.message
     );
   }
 };
