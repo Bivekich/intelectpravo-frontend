@@ -110,7 +110,7 @@ const Bank = () => {
       // Fetch bank details on component mount
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/bank-details",
+        url: "http://localhost:3030/profile/bank-details",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -166,7 +166,7 @@ const Bank = () => {
     try {
       // Submit bank details data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/bank-details",
+        "http://localhost:3030/profile/bank-details",
         payments,
         {
           headers: {
@@ -215,6 +215,7 @@ const Bank = () => {
           name="cardNumber"
           value={payments.cardNumber || ""}
           onChange={HandleInput}
+          maxLength={16}
         />
         {validationErrors.cardNumber && (
           <span className="text-red-600">{validationErrors.cardNumber}</span>
@@ -226,6 +227,7 @@ const Bank = () => {
           name="accountNumber"
           value={payments.accountNumber || ""}
           onChange={HandleInput}
+          maxLength={20}
         />
         {validationErrors.accountNumber && (
           <span className="text-red-600">{validationErrors.accountNumber}</span>
@@ -237,6 +239,7 @@ const Bank = () => {
           name="corrAccount"
           value={payments.corrAccount || ""}
           onChange={HandleInput}
+          maxLength={20}
         />
         {validationErrors.corrAccount && (
           <span className="text-red-600">{validationErrors.corrAccount}</span>
@@ -248,6 +251,7 @@ const Bank = () => {
           name="bic"
           value={payments.bic || ""}
           onChange={HandleInput}
+          maxLength={9}
         />
         {validationErrors.bic && (
           <span className="text-red-600">{validationErrors.bic}</span>

@@ -48,7 +48,7 @@ const Profile = () => {
     const allProfileFieldsFilled =
       !isConfirmed &&
       !toSend &&
-      Object.values(otherProfileFields).every((field) => field);
+      (Object.values(otherProfileFields).every((field) => field) || inoy);
 
     // Check payment conditions
     const isPaymentFilled =
@@ -58,6 +58,7 @@ const Profile = () => {
         payments.corrAccount &&
         payments.bic &&
         payments.accountNumber);
+    console.log("inoy " + inoy);
     console.log("allProfileFieldsFilled " + allProfileFieldsFilled);
 
     return allProfileFieldsFilled && isPaymentFilled;
@@ -67,13 +68,14 @@ const Profile = () => {
     // Fetch profile data
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      url: "http://localhost:3030/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         setProfile(response.data);
+        console.log(response.data)
         setMessage(
           response.data.isConfirmed
             ? "Подтвержденная учётная запись"
@@ -93,7 +95,7 @@ const Profile = () => {
     // Fetch bank details data
     axios({
       method: "get",
-      url: "https://api.intelectpravo.ru/profile/bank-details",
+      url: "http://localhost:3030/profile/bank-details",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -109,7 +111,7 @@ const Profile = () => {
   const handleSubmitForConfirmation = async () => {
     try {
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/verify-action",
+        "http://localhost:3030/profile/verify-action",
         { phoneNumber: profile.phoneNumber }, // Send phone number
         {
           headers: {

@@ -77,10 +77,11 @@ const Confirm = () => {
     if (savedProfile) {
       setProfile(savedProfile);
       setOriginalProfile(savedProfile);
+      
     } else {
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        url: "http://localhost:3030/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -110,6 +111,9 @@ const Confirm = () => {
       const isProfileChanged =
         JSON.stringify(profile) !== JSON.stringify(originalProfile);
       setIsButtonEnabled(isProfileChanged); // Activates button if data is changed
+    }
+    if (profile.inoy) {
+      setInoy(true)
     }
     // console.log(originalProfile);
   }, [profile, originalProfile]);
@@ -328,7 +332,7 @@ const Confirm = () => {
       cookies.set("phone", profile.phoneNumber, { path: "/" });
       // Navigate to confirmation page
       const updateResponse = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
+        "http://localhost:3030/profile/update",
         profileData,
         {
           headers: {
@@ -344,7 +348,7 @@ const Confirm = () => {
         formData.append("documentPhoto", documentPhoto);
 
         const huy = await axios.post(
-          "https://api.intelectpravo.ru/profile/upload-photo",
+          "http://localhost:3030/profile/upload-photo",
           formData,
           {
             headers: {

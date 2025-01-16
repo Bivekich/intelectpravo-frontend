@@ -45,7 +45,7 @@ const Header = () => {
       const response1 = await axios.get("https://api.ipify.org?format=json");
       axios({
         method: "post",
-        url: "https://api.intelectpravo.ru/auth/checkSession",
+        url: "http://localhost:3030/auth/checkSession",
         data: {
           token: token,
           ipAddress: response1.data.ip,
@@ -66,7 +66,7 @@ const Header = () => {
 
       axios({
         method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        url: "http://localhost:3030/profile/basic",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -120,7 +120,7 @@ const Header = () => {
     // "Да" button click handler - navigate to registration
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/logout",
+      url: "http://localhost:3030/auth/logout",
       data: {
         token: cookies.get("token"),
       },

@@ -23,7 +23,7 @@ const Product = () => {
         try {
           // Verify action using the phone number from cookies
           const response = await axios.post(
-            "https://api.intelectpravo.ru/profile/verify-action",
+            "http://localhost:3030/profile/verify-action",
             { phoneNumber }, // Send phone number
             {
               headers: {
@@ -46,7 +46,7 @@ const Product = () => {
       // Fetch profile data for the sale
       try {
         const saleResponse = await axios.get(
-          `https://api.intelectpravo.ru/sale/user-buy?sid=${pid}`,
+          `http://localhost:3030/sale/user-buy?sid=${pid}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -74,7 +74,7 @@ const Product = () => {
     e.preventDefault();
     axios({
       method: "get",
-      url: `https://api.intelectpravo.ru/sale/user-markPaid?sid=${pid}`,
+      url: `http://localhost:3030/sale/user-markPaid?sid=${pid}`,
       headers: {
         Authorization: `Bearer ${token}`,
       },

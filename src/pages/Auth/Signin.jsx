@@ -145,7 +145,7 @@ const SignIn = () => {
         if (sanitizedValue.length <= 10) {
           setValidationError((prevErrors) => ({
             ...prevErrors,
-            [name]: "Введите корректный адрес электронной почты",
+            [name]: "Введите корректный номер телефона",
           }));
         }
       }
@@ -178,7 +178,121 @@ const SignIn = () => {
     setProfile(updatedProfile);
     saveDraftToLocalStorage(updatedProfile);
   };
+  const validateForm = () => {
 
+    // Максимальная длина для каждого поля
+    const maxLength = {
+      phone: 22,
+      name: 22,
+      surname: 22,
+      patronymic: 22,
+      password: 22,
+      confirmPassword: 22,
+      email: 100,
+    };
+
+    const errors = {
+      name: "",
+      surname: "",
+      patronymic: "",
+      phone: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
+
+    Object.entries(profile).forEach(([name, value]) => {
+      if (value.length > maxLength[name]) {
+        errors[name] = `Длина поля не должна превышать ${maxLength[name]} символов.`;
+        return;
+      }
+  
+      // Валидация для имени, фамилии и отчества (только кириллица)
+      if (["name", "surname", "patronymic"].includes(name)) {
+        if (!cyrillicRegex.test(value)) {
+          setValidationError((prevErrors) => ({
+            ...prevErrors,
+            [name]:
+              "Поле должно начинаться с заглавной буквы и содержать только кириллицу.",
+          }));
+        errors[name] = "Поле должно начинаться с заглавной буквы и содержать только кириллицу.";
+
+        } else {
+          setValidationError((prevErrors) => ({
+            ...prevErrors,
+            [name]: "",
+          }));
+          errors[name] = "";
+
+        }
+      }
+  
+      // Валидация для телефона (обработать формат +7 и ограничение длины)
+      if (name === "phone") {
+        // Удаляем все нецифровые символы после "+7"
+        const sanitizedValue = value.replace(/\D/g, "");
+  
+        setValidationError((prevErrors) => ({
+          ...prevErrors,
+          [name]: "",
+        }));
+        if (!sanitizedValue.startsWith("7")) {
+          // Гарантируем, что номер начинается с "+7"
+          setProfile((prevProfile) => ({
+            ...prevProfile,
+            phone: "+7" + sanitizedValue,
+          }));
+        } else if (sanitizedValue.length <= 11) {
+          // Ограничиваем длину номера до 11 цифр после "+7"
+          setProfile((prevProfile) => ({
+            ...prevProfile,
+            phone: "+7" + sanitizedValue.slice(1), // Исключаем начальную "7"
+          }));
+          if (sanitizedValue.length <= 10) {
+            setValidationError((prevErrors) => ({
+              ...prevErrors,
+              [name]: "Введите корректный номер телефона",
+            }));
+          errors[name] = "Введите корректный номер телефона";
+
+          }
+        }
+      }
+  
+      // Валидация для email
+      if (name === "email") {
+        if (value.length <= 100 && !emailRegex.test(value)) {
+          setValidationError((prevErrors) => ({
+            ...prevErrors,
+            [name]: "Неверный формат email.",
+          }));
+          errors[name] = "Неверный формат email.";
+        } else {
+          setValidationError((prevErrors) => ({
+            ...prevErrors,
+            [name]: "",
+          }));
+          errors[name] = "";
+        }
+
+      }
+  
+      // Валидация пароля
+      // if (name === "password") {
+      //   const passwordErrors = validatePassword(value);
+      //   setPasswordValidation(passwordErrors.join(" "));
+      // }
+  
+      // Обновление состояния профиля
+      const updatedProfile = { ...profile, [name]: value };
+      setProfile(updatedProfile);
+      saveDraftToLocalStorage(updatedProfile);
+
+    });
+    
+    return errors;
+  };
+  
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -189,8 +303,12 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    
+    const errors = validateForm();
+    console.log(errors)
+    
     // Validate the form
-    if (Object.values(validationError).some((msg) => msg !== "")) {
+    if (Object.values(errors).some((msg) => msg !== "")) {
       setError("Пожалуйста, исправьте ошибки в форме.");
       return;
     }
@@ -217,7 +335,7 @@ const SignIn = () => {
     try {
       // Check if the phone is already registered
       const loginResponse = await axios.post(
-        "https://api.intelectpravo.ru/auth/login",
+        "http://localhost:3030/auth/login",
         {
           login: profile.phone,
         }
@@ -238,7 +356,7 @@ const SignIn = () => {
         try {
           // Register the new user
           const registerResponse = await axios.post(
-            "https://api.intelectpravo.ru/auth/register",
+            "http://localhost:3030/auth/register",
             {
               phone: profile.phone,
               name: profile.name,

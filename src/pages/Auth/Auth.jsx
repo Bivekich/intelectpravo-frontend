@@ -49,7 +49,7 @@ const Auth = () => {
       setErrorMessage("");
       setIsButtonDisabled(false);
     } else {
-      setErrorMessage("Введите корректный адрес электронной почты");
+      setErrorMessage("Введите корректный номер телефона");
       setIsButtonDisabled(true);
     }
   };
@@ -95,13 +95,13 @@ const Auth = () => {
 
     // Validate phone number
     if (!validatePhone(profile.login)) {
-      setErrorMessage("Введите корректный адрес электронной почты");
+      setErrorMessage("Введите корректный номер телефона");
       return;
     }
 
     axios({
       method: "post",
-      url: "https://api.intelectpravo.ru/auth/login",
+      url: "http://localhost:3030/auth/login",
       data: {
         login: profile.login,
       },
