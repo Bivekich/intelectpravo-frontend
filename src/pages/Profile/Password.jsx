@@ -96,7 +96,7 @@ const Password = () => {
       const phone = cookies.get("phone");
 
       await axios.post(
-        "http://localhost:3030/profile/verify-action",
+        "https://api.intelectpravo.ru/profile/verify-action",
         { phoneNumber: phone }, // Send phone number
         {
           headers: {

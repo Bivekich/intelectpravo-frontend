@@ -27,7 +27,7 @@ const Email = () => {
     // Fetch profile data on component mount
     axios({
       method: "get",
-      url: "http://localhost:3030/profile/basic",
+      url: "https://api.intelectpravo.ru/profile/basic",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -54,7 +54,7 @@ const Email = () => {
     try {
       // Submit profile data
       const response = await axios.get(
-        `http://localhost:3030/profile/confirm-email-code?email=${profile.email}`,
+        `https://api.intelectpravo.ru/profile/confirm-email-code?email=${profile.email}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

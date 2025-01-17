@@ -71,7 +71,7 @@ const ConfirmAction = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3030/profile/check-verify",
+        "https://api.intelectpravo.ru/profile/check-verify",
         {
           phoneNumber: phone,
           code: code,
@@ -92,7 +92,7 @@ const ConfirmAction = () => {
         if (action === "submitProfile") {
           axios({
             method: "post",
-            url: "http://localhost:3030/profile/submit",
+            url: "https://api.intelectpravo.ru/profile/submit",
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -114,7 +114,7 @@ const ConfirmAction = () => {
             const newpass = localStorage.getItem("newpass");
 
             const response1 = await axios.post(
-              `http://localhost:3030/profile/restore-password`,
+              `https://api.intelectpravo.ru/profile/restore-password`,
               {
                 newPassword: md5(newpass),
               },
@@ -141,7 +141,7 @@ const ConfirmAction = () => {
           const newPassword = localStorage.getItem("newPassword");
 
           const response = await axios.post(
-            "http://localhost:3030/profile/change-password", // Измените URL на свой
+            "https://api.intelectpravo.ru/profile/change-password", // Измените URL на свой
             {
               currentPassword: md5(currentPassword),
               newPassword: md5(newPassword),
@@ -171,7 +171,7 @@ const ConfirmAction = () => {
       return;
     } else {
       const response = await axios.post(
-        "http://localhost:3030/auth/resendCode",
+        "https://api.intelectpravo.ru/auth/resendCode",
         {
           phoneNumber: phone,
         }

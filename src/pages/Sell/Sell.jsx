@@ -127,7 +127,7 @@ const Sell = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3030/profile/check-verify",
+        "https://api.intelectpravo.ru/profile/check-verify",
         {
           phoneNumber: phone,
           code: code,
@@ -153,7 +153,7 @@ const Sell = () => {
         formData.append("licenseTerm", file.licenseTerm);
 
         const response1 = await axios.post(
-          "http://localhost:3030/sale/create",
+          "https://api.intelectpravo.ru/sale/create",
           formData,
           {
             headers: {
@@ -189,7 +189,7 @@ const Sell = () => {
     try {
       if (!validateForm()) return;
       const response = await axios.post(
-        "http://localhost:3030/profile/verify-action",
+        "https://api.intelectpravo.ru/profile/verify-action",
         { phoneNumber: phone },
         {
           headers: {

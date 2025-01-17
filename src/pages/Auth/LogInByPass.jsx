@@ -22,7 +22,7 @@ const LogInByPass = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3030/auth/loginByPass",
+        "https://api.intelectpravo.ru/auth/loginByPass",
         {
           phoneNumber: phone,
           password: md5(password),

@@ -35,7 +35,7 @@ const RestorePass = () => {
     try {
       // Verify action using the phone number from cookies
       const response = await axios.post(
-        "http://localhost:3030/profile/verify-action",
+        "https://api.intelectpravo.ru/profile/verify-action",
         { phoneNumber: phone }, // Send phone number
         {
           headers: {

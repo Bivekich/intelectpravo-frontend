@@ -79,7 +79,7 @@ const SignUp = () => {
     try {
       const response1 = await axios.get("https://api.ipify.org?format=json");
       const response = await axios.post(
-        "http://localhost:3030/auth/verify",
+        "https://api.intelectpravo.ru/auth/verify",
         {
           phoneNumber: phone,
           code: code,
@@ -120,7 +120,7 @@ const SignUp = () => {
       return;
     }
     const response = await axios.post(
-      "http://localhost:3030/auth/resendCode",
+      "https://api.intelectpravo.ru/auth/resendCode",
       {
         phoneNumber: phone,
       }
