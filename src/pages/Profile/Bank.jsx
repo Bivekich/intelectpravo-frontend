@@ -1,9 +1,9 @@
-import axios from "axios";
-import Input from "../../components/Input";
-import Cookies from "universal-cookie";
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
+import axios from 'axios';
+import Input from '../../components/Input';
+import Cookies from 'universal-cookie';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AlertModal from '../../components/AlertModal'; // Import the new AlertModal component
 
 const EXPIRATION_TIME = 300000; // 5 минут
 
@@ -39,34 +39,34 @@ const validatePayments = (payments) => {
 
   // Валидация номера карты (должен содержать 16 цифр)
   if (payments.cardNumber && !/^\d{16}$/.test(payments.cardNumber)) {
-    errors.cardNumber = "Номер карты должен содержать 16 цифр.";
+    errors.cardNumber = 'Номер карты должен содержать 16 цифр.';
   }
 
   // Валидация расчетного счета (обычно 20 цифр)
   if (payments.accountNumber && !/^\d{20}$/.test(payments.accountNumber)) {
-    errors.accountNumber = "Расчетный счет должен содержать 20 цифр.";
+    errors.accountNumber = 'Расчетный счет должен содержать 20 цифр.';
   }
 
   // Валидация корреспондентского счета (обычно 20 цифр)
   if (payments.corrAccount && !/^\d{20}$/.test(payments.corrAccount)) {
-    errors.corrAccount = "Корреспондентский счет должен содержать 20 цифр.";
+    errors.corrAccount = 'Корреспондентский счет должен содержать 20 цифр.';
   }
 
   // Валидация БИК (обычно 9 цифр)
   if (payments.bic && !/^\d{9}$/.test(payments.bic)) {
-    errors.bic = "БИК должен содержать 9 цифр.";
+    errors.bic = 'БИК должен содержать 9 цифр.';
   }
 
   // Проверка, чтобы все цифры в расчетном счете не были одинаковыми
   if (payments.accountNumber && /^(\d)\1{19}$/.test(payments.accountNumber)) {
     errors.accountNumber =
-      "Расчетный счет не может состоять из одинаковых цифр.";
+      'Расчетный счет не может состоять из одинаковых цифр.';
   }
 
   // Проверка, чтобы все цифры в корреспондентском счете не были одинаковыми
   if (payments.corrAccount && /^(\d)\1{19}$/.test(payments.corrAccount)) {
     errors.corrAccount =
-      "Корреспондентский счет не может состоять из одинаковых цифр.";
+      'Корреспондентский счет не может состоять из одинаковых цифр.';
   }
 
   // Проверка, чтобы расчетный и корреспондентский счета не были равны
@@ -76,7 +76,7 @@ const validatePayments = (payments) => {
     payments.accountNumber === payments.corrAccount
   ) {
     errors.corrAccount =
-      "Расчетный и корреспондентский счета не могут быть одинаковыми.";
+      'Расчетный и корреспондентский счета не могут быть одинаковыми.';
   }
 
   return errors;
@@ -84,10 +84,10 @@ const validatePayments = (payments) => {
 
 const Bank = () => {
   const cookies = new Cookies();
-  const token = cookies.get("token");
-  const phone = cookies.get("phone");
+  const token = cookies.get('token');
+  const phone = cookies.get('phone');
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [enableButton, setEnableButton] = useState(false);
   const [payments, setPayments] = useState({
     cardNumber: null,
@@ -102,15 +102,15 @@ const Bank = () => {
 
   // При загрузке проверяем, есть ли черновик в localStorage
   useEffect(() => {
-    const savedPayments = getFromLocalStorage("paymentsData");
+    const savedPayments = getFromLocalStorage('paymentsData');
     if (savedPayments) {
       setPayments(savedPayments);
       setInitialPayments(savedPayments);
     } else {
       // Fetch bank details on component mount
       axios({
-        method: "get",
-        url: "https://api.intelectpravo.ru/profile/bank-details",
+        method: 'get',
+        url: 'https://api.intelectpravo.ru/profile/bank-details',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -140,12 +140,28 @@ const Bank = () => {
 
   const HandleInput = (e) => {
     const { name, value } = e.target;
+
+    // Для всех полей оставляем только цифры
+    const numericValue = value.replace(/\D/g, '');
+
+    // Ограничиваем длину в зависимости от поля
+    let limitedValue = numericValue;
+    if (name === 'cardNumber' && numericValue.length > 16) {
+      limitedValue = numericValue.slice(0, 16);
+    } else if (name === 'accountNumber' && numericValue.length > 20) {
+      limitedValue = numericValue.slice(0, 20);
+    } else if (name === 'corrAccount' && numericValue.length > 20) {
+      limitedValue = numericValue.slice(0, 20);
+    } else if (name === 'bic' && numericValue.length > 9) {
+      limitedValue = numericValue.slice(0, 9);
+    }
+
     const updatedPayments = {
       ...payments,
-      [name]: value,
+      [name]: limitedValue,
     };
     setPayments(updatedPayments);
-    saveToLocalStorage("paymentsData", updatedPayments); // Сохраняем данные в localStorage
+    saveToLocalStorage('paymentsData', updatedPayments);
   };
 
   const handleSubmit = async (e) => {
@@ -166,7 +182,7 @@ const Bank = () => {
     try {
       // Submit bank details data
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/bank-details",
+        'https://api.intelectpravo.ru/profile/bank-details',
         payments,
         {
           headers: {
@@ -175,9 +191,9 @@ const Bank = () => {
         }
       );
       console.log(response);
-      localStorage.removeItem("paymentsData");
-      console.log("Response:", response.data);
-      navigate("/profile/?info=2");
+      localStorage.removeItem('paymentsData');
+      console.log('Response:', response.data);
+      navigate('/profile/?info=2');
     } catch (error) {
       console.log(error);
       // Optionally, set an error message here
@@ -195,16 +211,16 @@ const Bank = () => {
         <h3 className="font-semibold text-xl">Банковские реквизиты</h3>
         {payments.updatedAt && (
           <p>
-            Сохранено{" "}
-            {new Date(payments.updatedAt).toLocaleDateString("ru-RU", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
+            Сохранено{' '}
+            {new Date(payments.updatedAt).toLocaleDateString('ru-RU', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
             })}
-            г в{" "}
-            {new Date(payments.updatedAt).toLocaleTimeString("ru-RU", {
-              hour: "2-digit",
-              minute: "2-digit",
+            г в{' '}
+            {new Date(payments.updatedAt).toLocaleTimeString('ru-RU', {
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </p>
         )}
@@ -213,7 +229,7 @@ const Bank = () => {
           label="Номер банковской карты"
           type="text"
           name="cardNumber"
-          value={payments.cardNumber || ""}
+          value={payments.cardNumber || ''}
           onChange={HandleInput}
           maxLength={16}
         />
@@ -225,7 +241,7 @@ const Bank = () => {
           label="Рассчетный счёт"
           type="text"
           name="accountNumber"
-          value={payments.accountNumber || ""}
+          value={payments.accountNumber || ''}
           onChange={HandleInput}
           maxLength={20}
         />
@@ -237,7 +253,7 @@ const Bank = () => {
           label="Корреспондентский счёт"
           type="text"
           name="corrAccount"
-          value={payments.corrAccount || ""}
+          value={payments.corrAccount || ''}
           onChange={HandleInput}
           maxLength={20}
         />
@@ -249,7 +265,7 @@ const Bank = () => {
           label="БИК банка"
           type="text"
           name="bic"
-          value={payments.bic || ""}
+          value={payments.bic || ''}
           onChange={HandleInput}
           maxLength={9}
         />
@@ -258,7 +274,7 @@ const Bank = () => {
         )}
 
         {/* <AcceptAll name="accept" /> */}
-        {message !== "" && <span>{message}</span>}
+        {message !== '' && <span>{message}</span>}
         <button
           type="submit"
           disabled={!enableButton}
@@ -273,7 +289,7 @@ const Bank = () => {
           onClick={() => {
             enableButton
               ? setShowModalBack(!showModalBack)
-              : navigate("/profile");
+              : navigate('/profile');
           }}
           className="bg-gray-300 text-gray-600 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
         >
@@ -284,7 +300,7 @@ const Bank = () => {
         <AlertModal
           title="Данные были изменены. Выйти без сохранения?"
           message=""
-          onConfirm={() => navigate("/profile")}
+          onConfirm={() => navigate('/profile')}
           onCancel={() => setShowModalBack(!showModalBack)}
         />
       )}

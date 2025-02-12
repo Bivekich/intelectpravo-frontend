@@ -1,44 +1,44 @@
-import axios from "axios";
-import Input from "../../components/Input";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import Cookies from "universal-cookie";
-import React, { useState, useEffect } from "react";
-import AcceptAll from "../../components/AcceptAll";
-import AlertInfoModal from "../../components/AlertInfoModal"; // Import the new AlertModal component
+import axios from 'axios';
+import Input from '../../components/Input';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import Cookies from 'universal-cookie';
+import React, { useState, useEffect } from 'react';
+import AcceptAll from '../../components/AcceptAll';
+import AlertInfoModal from '../../components/AlertInfoModal'; // Import the new AlertModal component
 
 const Profile = () => {
   const cookies = new Cookies();
-  const token = cookies.get("token");
+  const token = cookies.get('token');
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
 
   // Access parameters using queryParams.get('parameterName')
-  const [info, setInfo] = useState(queryParams.get("info") || 0); // replace 'myParam' with your parameter name
+  const [info, setInfo] = useState(queryParams.get('info') || 0); // replace 'myParam' with your parameter name
 
   const [profile, setProfile] = useState({
-    name: "",
-    surname: "",
-    patronymic: "",
-    email: "",
-    phoneNumber: "",
-    birthDate: "",
-    passportSeries: "",
-    passportNumber: "",
-    address: "",
-    passportIssuedDate: "",
-    passportIssuedBy: "",
+    name: '',
+    surname: '',
+    patronymic: '',
+    email: '',
+    phoneNumber: '',
+    birthDate: '',
+    passportSeries: '',
+    passportNumber: '',
+    address: '',
+    passportIssuedDate: '',
+    passportIssuedBy: '',
     documentPhoto: null,
   });
 
   const [payments, setPayments] = useState({
-    cardNumber: "",
-    accountNumber: "",
-    corrAccount: "",
-    bic: "",
+    cardNumber: '',
+    accountNumber: '',
+    corrAccount: '',
+    bic: '',
   });
 
   const allFieldsFilled = () => {
@@ -58,8 +58,8 @@ const Profile = () => {
         payments.corrAccount &&
         payments.bic &&
         payments.accountNumber);
-    console.log("inoy " + inoy);
-    console.log("allProfileFieldsFilled " + allProfileFieldsFilled);
+    console.log('inoy ' + inoy);
+    console.log('allProfileFieldsFilled ' + allProfileFieldsFilled);
 
     return allProfileFieldsFilled && isPaymentFilled;
   };
@@ -67,23 +67,23 @@ const Profile = () => {
   useEffect(() => {
     // Fetch profile data
     axios({
-      method: "get",
-      url: "https://api.intelectpravo.ru/profile/basic",
+      method: 'get',
+      url: 'https://api.intelectpravo.ru/profile/basic',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
         setProfile(response.data);
-        console.log(response.data)
+        console.log(response.data);
         setMessage(
           response.data.isConfirmed
-            ? "Подтвержденная учётная запись"
+            ? 'Подтвержденная учётная запись'
             : 'Чтобы подтвердить профиль, необходимо заполнить все поля формы "Полная информация" и все поля формы "Реквизиты", после их заполнения Ваш профиль будет направлен администратору сайта на проверку'
         );
         if (response.data.toSend && !response.data.isConfirmed) {
           setMessage(
-            "Ваш профиль отправлен на подтверждение администраторам сайта. Ожидайте"
+            'Ваш профиль отправлен на подтверждение администраторам сайта. Ожидайте'
           );
         }
         setConfirmed(response.data.isConfirmed);
@@ -94,8 +94,8 @@ const Profile = () => {
 
     // Fetch bank details data
     axios({
-      method: "get",
-      url: "https://api.intelectpravo.ru/profile/bank-details",
+      method: 'get',
+      url: 'https://api.intelectpravo.ru/profile/bank-details',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -111,27 +111,27 @@ const Profile = () => {
   const handleSubmitForConfirmation = async () => {
     try {
       const response = await axios.post(
-        "https://api.intelectpravo.ru/profile/verify-action",
+        'https://api.intelectpravo.ru/profile/verify-action',
         { phoneNumber: profile.phoneNumber }, // Send phone number
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         }
       );
-      console.log("Response:", response.data);
-      localStorage.setItem("lastpage", "/profile");
-      navigate("/profile/confirmaction/submitProfile");
+      console.log('Response:', response.data);
+      localStorage.setItem('lastpage', '/profile');
+      navigate('/profile/confirmaction/submitProfile');
     } catch (error) {
       console.error(error);
     }
   };
 
   const formatDateForInput = (dateStr) => {
-    if (!dateStr) return "";
+    if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toISOString().split("T")[0];
+    return date.toISOString().split('T')[0];
   };
 
   return (
@@ -208,59 +208,66 @@ const Profile = () => {
             label="Дата рождения"
             type="date"
             name="birthDate"
-            value={formatDateForInput(profile.birthDate) || ""}
+            value={formatDateForInput(profile.birthDate) || ''}
             readOnly
           />
         )}
 
-        {profile.passportSeries && (
-          <Input
-            label="Серия паспорта"
-            type="text"
-            name="passportSeries"
-            value={profile.passportSeries}
-            readOnly
-          />
-        )}
+        {/* Passport Details */}
+        {!profile.inoy && (
+          <>
+            {profile.passportSeries && (
+              <Input
+                label="Серия паспорта"
+                type="text"
+                name="passportSeries"
+                value={profile.passportSeries}
+                readOnly
+              />
+            )}
 
-        {profile.passportNumber && (
-          <Input
-            label="Номер паспорта"
-            type="text"
-            name="passportNumber"
-            value={profile.passportNumber}
-            readOnly
-          />
-        )}
+            {profile.passportNumber && (
+              <Input
+                label="Номер паспорта"
+                type="text"
+                name="passportNumber"
+                value={profile.passportNumber}
+                readOnly
+              />
+            )}
 
-        {profile.passportCode && (
-          <Input
-            label="Код подразделения"
-            type="text"
-            name="passportCode"
-            value={profile.passportCode}
-            readOnly
-          />
-        )}
+            {profile.passportCode && (
+              <Input
+                label="Код подразделения"
+                type="text"
+                name="passportCode"
+                value={profile.passportCode}
+                readOnly
+              />
+            )}
 
-        {profile.passportIssuedDate && (
-          <Input
-            label="Когда выдан"
-            type="date"
-            name="passportIssuedDate"
-            value={formatDateForInput(profile.passportIssuedDate) || ""}
-            readOnly
-          />
-        )}
+            {profile.passportIssuedDate && (
+              <Input
+                label="Дата выдачи"
+                type="text"
+                name="passportIssuedDate"
+                value={new Date(
+                  profile.passportIssuedDate
+                ).toLocaleDateString()}
+                readOnly
+              />
+            )}
 
-        {profile.passportIssuedBy && (
-          <Input
-            label="Кем выдан"
-            type="text"
-            name="passportIssuedBy"
-            value={profile.passportIssuedBy}
-            readOnly
-          />
+            {profile.passportIssuedBy && (
+              <Input
+                label="Кем выдан"
+                type="text"
+                name="passportIssuedBy"
+                value={profile.passportIssuedBy}
+                readOnly
+              />
+            )}
+          </>
         )}
 
         {profile.inoy && (
@@ -277,7 +284,7 @@ const Profile = () => {
           <>
             <span>Фото документа, удостоверяющего личность</span>
             <div className="flex flex-col gap-3">
-              {typeof profile.documentPhoto === "string" ? (
+              {typeof profile.documentPhoto === 'string' ? (
                 <img src={profile.documentPhoto} alt="Uploaded Document" />
               ) : (
                 <p>{profile.documentPhoto.name}</p>

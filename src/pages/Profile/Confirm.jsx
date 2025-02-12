@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import Input from "../../components/Input";
-import Cookies from "universal-cookie";
-import axios from "axios";
-import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
+import React, { useState, useEffect, useRef } from 'react';
+import Input from '../../components/Input';
+import Cookies from 'universal-cookie';
+import axios from 'axios';
+import AlertModal from '../../components/AlertModal'; // Import the new AlertModal component
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 // Время жизни данных в миллисекундах (5 минут = 300000 мс)
 const EXPIRATION_TIME = 300000; // 5 минут
@@ -45,43 +45,42 @@ const getFromLocalStorage = (key) => {
 const Confirm = () => {
   const cookies = new Cookies();
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [inoy, setInoy] = useState(false);
-  const [error, setError] = useState(""); // Для вывода ошибок (например, превышение размера файла)
+  const [error, setError] = useState(''); // Для вывода ошибок (например, превышение размера файла)
   const [validationErrors, setValidationErrors] = useState({});
   const [showModalBack, setShowModalBack] = useState(false);
   const [showModalSave, setShowModalSave] = useState(false);
   const formRef = useRef(null);
   const [profile, setProfile] = useState({
-    name: "",
-    surname: "",
-    patronymic: "",
-    email: "",
-    phoneNumber: "",
-    birthDate: "",
-    passportSeries: "",
-    passportNumber: "",
-    passportCode: "",
-    address: "",
-    passportIssuedDate: "",
-    passportIssuedBy: "",
-    inoy: "",
+    name: '',
+    surname: '',
+    patronymic: '',
+    email: '',
+    phoneNumber: '',
+    birthDate: '',
+    passportSeries: '',
+    passportNumber: '',
+    passportCode: '',
+    address: '',
+    passportIssuedDate: '',
+    passportIssuedBy: '',
+    inoy: '',
     documentPhoto: null,
   });
   const [originalProfile, setOriginalProfile] = useState(null); // Исходные данные для сравнения
   const [isButtonEnabled, setIsButtonEnabled] = useState(false); // Состояние кнопки
-  const token = cookies.get("token");
+  const token = cookies.get('token');
 
   useEffect(() => {
-    const savedProfile = getFromLocalStorage("profileData");
+    const savedProfile = getFromLocalStorage('profileData');
     if (savedProfile) {
       setProfile(savedProfile);
       setOriginalProfile(savedProfile);
-      
     } else {
       axios({
-        method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        method: 'get',
+        url: 'https://api.intelectpravo.ru/profile/basic',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -89,8 +88,8 @@ const Confirm = () => {
         .then((response) => {
           setMessage(
             response.data.isConfirmed
-              ? "Подтвержденная учётная запись"
-              : "Чтобы подтвердить профиль, необходимо заполнить все поля данной формы и все поля формы с реквизитами"
+              ? 'Подтвержденная учётная запись'
+              : 'Чтобы подтвердить профиль, необходимо заполнить все поля данной формы и все поля формы с реквизитами'
           );
           setProfile(response.data);
           if (response.data.inoy) {
@@ -113,7 +112,7 @@ const Confirm = () => {
       setIsButtonEnabled(isProfileChanged); // Activates button if data is changed
     }
     if (profile.inoy) {
-      setInoy(true)
+      setInoy(true);
     }
     // console.log(originalProfile);
   }, [profile, originalProfile]);
@@ -135,50 +134,50 @@ const Confirm = () => {
     // Validate each field
     if (!profile.surname || !cyrillicRegex.test(profile.surname)) {
       errors.surname =
-        "Фамилия должна быть на кириллице и начинаться с заглавной буквы";
+        'Фамилия должна быть на кириллице и начинаться с заглавной буквы';
     }
 
     if (!profile.name || !cyrillicRegex.test(profile.name)) {
       errors.name =
-        "Имя должно быть на кириллице и начинаться с заглавной буквы";
+        'Имя должно быть на кириллице и начинаться с заглавной буквы';
     }
 
     if (profile.patronymic && !cyrillicRegex.test(profile.patronymic)) {
       errors.patronymic =
-        "Отчество должно быть на кириллице и начинаться с заглавной буквы";
+        'Отчество должно быть на кириллице и начинаться с заглавной буквы';
     }
 
     if (!phoneRegex.test(profile.phoneNumber)) {
-      errors.phoneNumber = "Введите корректный адрес электронной почты";
+      errors.phoneNumber = 'Введите корректный адрес электронной почты';
     }
 
     if (!profile.address) {
-      errors.address = "Адрес обязателен для заполнения";
+      errors.address = 'Адрес обязателен для заполнения';
     }
 
     if (!inoy) {
       if (!profile.passportSeries || profile.passportSeries.length !== 4) {
-        errors.passportSeries = "Серия паспорта должна содержать 4 цифры";
+        errors.passportSeries = 'Серия паспорта должна содержать 4 цифры';
       }
 
       if (!profile.passportNumber || profile.passportNumber.length !== 6) {
-        errors.passportNumber = "Номер паспорта должен содержать 6 цифр";
+        errors.passportNumber = 'Номер паспорта должен содержать 6 цифр';
       }
       if (
         !profile.passportCode ||
         !/^\d{3}-\d{3}$/.test(profile.passportCode)
       ) {
         errors.passportCode =
-          "Код подразделения должен содержать 6 цифр и тире (формат: 123-456)";
+          'Код подразделения должен содержать 6 цифр и тире (формат: 123-456)';
       }
       if (!profile.passportIssuedDate) {
-        errors.passportIssuedDate = "Дата выдачи паспорта обязательна";
+        errors.passportIssuedDate = 'Дата выдачи паспорта обязательна';
       } else if (!validateYear(profile.passportIssuedDate)) {
         errors.passportIssuedDate = `Дата выдачи паспорта должна быть не ранее ${minYear} и не в будущем.`;
       }
 
       if (!profile.passportIssuedBy) {
-        errors.passportIssuedBy = "Информация о выдаче паспорта обязательна";
+        errors.passportIssuedBy = 'Информация о выдаче паспорта обязательна';
       } else if (!issuedByRegex.test(profile.passportIssuedBy)) {
         errors.passportIssuedBy =
           "Поле 'Кем выдан' может содержать только кириллицу, пробелы и тире.";
@@ -186,17 +185,17 @@ const Confirm = () => {
     }
 
     if (!profile.birthDate) {
-      errors.birthDate = "Дата рождения обязательна";
+      errors.birthDate = 'Дата рождения обязательна';
     } else if (!validateYear(profile.birthDate)) {
       errors.birthDate = `Год рождения должен быть не ранее ${minYear} и не в будущем.`;
     }
 
     if (!profile.documentPhoto) {
-      errors.documentPhoto = "Загрузка фотографии документа обязательна";
+      errors.documentPhoto = 'Загрузка фотографии документа обязательна';
     }
 
     if (!profile.email || !emailRegex.test(profile.email)) {
-      errors.email = "Некорректный формат email";
+      errors.email = 'Некорректный формат email';
     }
 
     return errors;
@@ -205,7 +204,7 @@ const Confirm = () => {
   const handleNumericInput = (e) => {
     const { name, value } = e.target;
     // Убираем все, кроме цифр
-    let numericValue = value.replace(/[^\d]/g, "");
+    let numericValue = value.replace(/[^\d]/g, '');
 
     // Максимальная длина для каждого поля
     const maxLengths = {
@@ -225,7 +224,7 @@ const Confirm = () => {
   };
   const handleNumericInputCode = (e) => {
     const { name, value } = e.target;
-    const numericValue = value.replace(/[^\d-]/g, ""); // Убираем все, кроме цифр
+    const numericValue = value.replace(/[^\d-]/g, ''); // Убираем все, кроме цифр
 
     // Обновляем состояние
     setProfile((prevProfile) => ({
@@ -239,11 +238,11 @@ const Confirm = () => {
 
     // Check if the input value length exceeds 50 characters
     let limitedValue;
-    if (name == "address") {
+    if (name == 'address') {
       limitedValue = value.length > 100 ? value.slice(0, 100) : value;
-    } else if (name == "passportIssuedBy") {
+    } else if (name == 'passportIssuedBy') {
       limitedValue = value.length > 100 ? value.slice(0, 100) : value;
-    } else if (name == "email") {
+    } else if (name == 'email') {
       limitedValue = value.length > 70 ? value.slice(0, 70) : value;
     } else {
       limitedValue = value.length > 22 ? value.slice(0, 22) : value;
@@ -255,31 +254,40 @@ const Confirm = () => {
     };
 
     setProfile(updatedProfile);
-    saveToLocalStorage("profileData", updatedProfile);
+    saveToLocalStorage('profileData', updatedProfile);
   };
 
   const handlePhoneChange = (e) => {
-    const phone = e.target.value.replace(/\D/g, ""); // Убираем все, кроме цифр
+    const phone = e.target.value.replace(/\D/g, ''); // Убираем все, кроме цифр
     if (phone.length <= 11) {
       setProfile((prevProfile) => ({
         ...prevProfile,
-        phoneNumber: "+7" + phone.slice(1), // Автоматически добавляем +7
+        phoneNumber: '+7' + phone.slice(1), // Автоматически добавляем +7
       }));
     }
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      setError("Размер файла не должен превышать 2 МБ");
-    } else {
-      setError(""); // Убираем ошибку
-      const updatedProfile = {
-        ...profile,
+    const maxSize = 5 * 1024 * 1024; // 5MB в байтах
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+
+    if (file) {
+      if (!allowedTypes.includes(file.type)) {
+        setError('Допустимы только файлы формата JPG, JPEG или PNG');
+        return;
+      }
+
+      if (file.size > maxSize) {
+        setError('Размер файла не должен превышать 5MB');
+        return;
+      }
+
+      setProfile((prevProfile) => ({
+        ...prevProfile,
         documentPhoto: file,
-      };
-      setProfile(updatedProfile);
-      saveToLocalStorage("profileData", updatedProfile);
+      }));
+      setError('');
     }
   };
 
@@ -289,7 +297,7 @@ const Confirm = () => {
       documentPhoto: null,
     };
     setProfile(updatedProfile);
-    saveToLocalStorage("profileData", updatedProfile);
+    saveToLocalStorage('profileData', updatedProfile);
   };
 
   const handleSubmit = async (e) => {
@@ -298,7 +306,7 @@ const Confirm = () => {
 
     if (Object.keys(validationErrors).length > 0) {
       setValidationErrors(validationErrors);
-      setMessage("Пожалуйста, исправьте ошибки в форме.");
+      setMessage('Пожалуйста, исправьте ошибки в форме.');
       return;
     }
 
@@ -306,20 +314,20 @@ const Confirm = () => {
   };
 
   const formatDateForInput = (dateStr) => {
-    if (!dateStr) return "";
+    if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toISOString().split("T")[0];
+    return date.toISOString().split('T')[0];
   };
 
   const handleConfirmSubmit = async () => {
     if (inoy) {
       setProfile((prevProfile) => ({
         ...prevProfile,
-        passportSeries: "",
-        passportCode: "",
-        passportNumber: "",
-        passportIssuedDate: "",
-        passportIssuedBy: "",
+        passportSeries: '',
+        passportCode: '',
+        passportNumber: '',
+        passportIssuedDate: '',
+        passportIssuedBy: '',
       }));
     }
     const { documentPhoto, ...profileData } = profile;
@@ -329,10 +337,10 @@ const Confirm = () => {
       console.log(documentPhoto);
 
       // Set phone number in cookies
-      cookies.set("phone", profile.phoneNumber, { path: "/" });
+      cookies.set('phone', profile.phoneNumber, { path: '/' });
       // Navigate to confirmation page
       const updateResponse = await axios.post(
-        "https://api.intelectpravo.ru/profile/update",
+        'https://api.intelectpravo.ru/profile/update',
         profileData,
         {
           headers: {
@@ -342,24 +350,24 @@ const Confirm = () => {
       );
       console.log(updateResponse);
       // If documentPhoto is an object (likely a file), convert it to a string format for localStorage
-      if (typeof documentPhoto === "object") {
+      if (typeof documentPhoto === 'object') {
         const formData = new FormData();
 
-        formData.append("documentPhoto", documentPhoto);
+        formData.append('documentPhoto', documentPhoto);
 
         const huy = await axios.post(
-          "https://api.intelectpravo.ru/profile/upload-photo",
+          'https://api.intelectpravo.ru/profile/upload-photo',
           formData,
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
+              'Content-Type': 'multipart/form-data',
             },
           }
         );
         console.log(huy);
       }
-      navigate("/profile/?info=1");
+      navigate('/profile/?info=1');
     } catch (error) {
       console.error(error);
     }
@@ -376,16 +384,16 @@ const Confirm = () => {
           Редактирование паспортных и контактных данных
         </h3>
         <p>
-          Сохранено{" "}
-          {new Date(profile.updatedAt).toLocaleDateString("ru-RU", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
+          Сохранено{' '}
+          {new Date(profile.updatedAt).toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
           })}
-          г в{" "}
-          {new Date(profile.updatedAt).toLocaleTimeString("ru-RU", {
-            hour: "2-digit",
-            minute: "2-digit",
+          г в{' '}
+          {new Date(profile.updatedAt).toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit',
           })}
         </p>
 
@@ -405,7 +413,7 @@ const Confirm = () => {
           label="Фамилия"
           type="text"
           name="surname"
-          value={profile.surname || ""}
+          value={profile.surname || ''}
           onChange={HandleInput}
           required
         />
@@ -417,7 +425,7 @@ const Confirm = () => {
           label="Имя"
           type="text"
           name="name"
-          value={profile.name || ""}
+          value={profile.name || ''}
           onChange={HandleInput}
           required
         />
@@ -429,7 +437,7 @@ const Confirm = () => {
           label="Отчество"
           type="text"
           name="patronymic"
-          value={profile.patronymic || ""}
+          value={profile.patronymic || ''}
           onChange={HandleInput}
         />
         {validationErrors.patronymic && (
@@ -440,7 +448,7 @@ const Confirm = () => {
           label="Номер телефона"
           type="text"
           name="phoneNumber"
-          value={profile.phoneNumber || ""}
+          value={profile.phoneNumber || ''}
           onChange={handlePhoneChange}
           required
           placeholder="+7XXXXXXXXXX"
@@ -453,7 +461,7 @@ const Confirm = () => {
           label="Адрес"
           type="text"
           name="address"
-          value={profile.address || ""}
+          value={profile.address || ''}
           onChange={HandleInput}
           required
           maxLength={280}
@@ -467,7 +475,7 @@ const Confirm = () => {
           label="Дата рождения"
           type="date"
           name="birthDate"
-          value={formatDateForInput(profile.birthDate) || ""}
+          value={formatDateForInput(profile.birthDate) || ''}
           onChange={HandleInput}
           required
         />
@@ -480,7 +488,7 @@ const Confirm = () => {
               label="Серия паспорта"
               type="text"
               name="passportSeries"
-              value={profile.passportSeries || ""}
+              value={profile.passportSeries || ''}
               onChange={handleNumericInput} // Изменение обработчика
               required
             />
@@ -494,7 +502,7 @@ const Confirm = () => {
               label="Номер паспорта"
               type="text"
               name="passportNumber"
-              value={profile.passportNumber || ""}
+              value={profile.passportNumber || ''}
               onChange={handleNumericInput} // Изменение обработчика
               required
             />
@@ -508,7 +516,7 @@ const Confirm = () => {
               label="Код подразделения"
               type="text"
               name="passportCode"
-              value={profile.passportCode || ""}
+              value={profile.passportCode || ''}
               onChange={handleNumericInputCode} // Изменение обработчика
               required
             />
@@ -522,7 +530,7 @@ const Confirm = () => {
               label="Когда выдан"
               type="date"
               name="passportIssuedDate"
-              value={formatDateForInput(profile.passportIssuedDate) || ""}
+              value={formatDateForInput(profile.passportIssuedDate) || ''}
               onChange={HandleInput}
             />
             {validationErrors.passportIssuedDate && (
@@ -535,7 +543,7 @@ const Confirm = () => {
               label="Кем выдан"
               type="text"
               name="passportIssuedBy"
-              value={profile.passportIssuedBy || ""}
+              value={profile.passportIssuedBy || ''}
               onChange={HandleInput}
             />
             {validationErrors.passportIssuedBy && (
@@ -550,7 +558,7 @@ const Confirm = () => {
               label="Иное"
               type="text"
               name="inoy"
-              value={profile.inoy || ""}
+              value={profile.inoy || ''}
               maxLength={100}
               onChange={HandleInput}
             />
@@ -561,12 +569,12 @@ const Confirm = () => {
             type="checkbox"
             onChange={() => setInoy(!inoy)}
             checked={inoy}
-          />{" "}
+          />{' '}
           Иное
         </label>
         {profile.documentPhoto && (
           <div className="flex flex-col gap-3">
-            {typeof profile.documentPhoto === "string" ? (
+            {typeof profile.documentPhoto === 'string' ? (
               <>
                 <span>Фото документа, удостоверяющего личность</span>
                 <img src={profile.documentPhoto} alt="Uploaded Document" />
@@ -604,18 +612,18 @@ const Confirm = () => {
         <button
           type="submit"
           className={`py-2 px-4 rounded-xl ${
-            isButtonEnabled ? "bg-blue-600" : "bg-gray-400"
+            isButtonEnabled ? 'bg-blue-600' : 'bg-gray-400'
           } text-white`}
           disabled={!isButtonEnabled}
         >
-          {profile.isConfirmed ? "Сохранить данные" : "Сохранить данные"}
+          {profile.isConfirmed ? 'Сохранить данные' : 'Сохранить данные'}
         </button>
         <button
           type="button"
           onClick={() => {
             isButtonEnabled
               ? setShowModalBack(!showModalBack)
-              : navigate("/profile");
+              : navigate('/profile');
           }}
           className="bg-gray-400 text-gray-500 rounded-xl text-white p-2 transition hover:scale-105 hover:text-gray-600"
         >
@@ -626,7 +634,7 @@ const Confirm = () => {
         <AlertModal
           title="Данные были изменены. Выйти без сохранения?"
           message=""
-          onConfirm={() => navigate("/profile")}
+          onConfirm={() => navigate('/profile')}
           onCancel={() => setShowModalBack(!showModalBack)}
         />
       )}

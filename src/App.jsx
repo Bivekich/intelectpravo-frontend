@@ -1,24 +1,23 @@
-import "./App.css";
-import Layout from "./layouts/Layout";
-import Signin from "./pages/Auth/Signin";
-import Signup from "./pages/Auth/Signup";
-import Auth from "./pages/Auth/Auth";
-import Profile from "./pages/Profile/Profile";
-import Confirm from "./pages/Profile/Confirm";
-import Bank from "./pages/Profile/Bank";
-import Home from "./pages/Home/Home";
-import Sell from "./pages/Sell/Sell";
-import Buy from "./pages/Buy/Buy";
-import Product from "./pages/Buy/Product";
-import Files from "./pages/FIles/FIles";
-import Password from "./pages/Profile/Password";
-import LogInByPass from "./pages/Auth/LogInByPass";
-import Email from "./pages/Profile/Email";
-import ConfirmEmail from "./pages/Profile/Confirmemail";
-import ConfirmAction from "./pages/ConfirmAction";
-import Orders from "./pages/Ordes/Orders";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import RestorePass from "./pages/Auth/RestorePass";
+import './App.css';
+import Layout from './layouts/Layout';
+import Signin from './pages/Auth/Signin';
+import Signup from './pages/Auth/Signup';
+import Auth from './pages/Auth/Auth';
+import Profile from './pages/Profile/Profile';
+import Confirm from './pages/Profile/Confirm';
+import Bank from './pages/Profile/Bank';
+import Home from './pages/Home/Home';
+import Sell from './pages/Sell/Sell';
+import Buy from './pages/Buy/Buy';
+import Product from './pages/Buy/Product';
+import Files from './pages/FIles/FIles';
+import Password from './pages/Profile/Password';
+import LogInByPass from './pages/Auth/LogInByPass';
+import Email from './pages/Profile/Email';
+import ConfirmEmail from './pages/Profile/Confirmemail';
+import ConfirmAction from './pages/ConfirmAction';
+import Orders from './pages/Ordes/Orders';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
   return (
@@ -35,7 +34,6 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/loginbypass" element={<LogInByPass />} />
-            <Route path="/restorepass" element={<RestorePass />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/confirm" element={<Confirm />} />
             <Route path="/profile/bank" element={<Bank />} />

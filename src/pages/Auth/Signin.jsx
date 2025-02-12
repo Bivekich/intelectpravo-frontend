@@ -1,11 +1,11 @@
-import Input from "../../components/Input";
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Cookies from "universal-cookie";
-import axios from "axios";
-import AcceptAll from "../../components/AcceptAll";
-import md5 from "md5";
-import AlertModal from "../../components/AlertModal"; // Import the new AlertModal component
+import Input from '../../components/Input';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'universal-cookie';
+import axios from 'axios';
+import AcceptAll from '../../components/AcceptAll';
+import md5 from 'md5';
+import AlertModal from '../../components/AlertModal'; // Import the new AlertModal component
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -17,12 +17,12 @@ const SignIn = () => {
   const [showModalEnterToProfile, setShowModalEnterToProfile] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   useEffect(() => {
-    if (!cookies.get("page")) {
-      cookies.set("page", "/signin", { path: "/" });
+    if (!cookies.get('page')) {
+      cookies.set('page', '/signin', { path: '/' });
     }
 
-    const savedProfile = localStorage.getItem("draftProfile");
-    const savedTime = localStorage.getItem("draftProfileTime");
+    const savedProfile = localStorage.getItem('draftProfile');
+    const savedTime = localStorage.getItem('draftProfileTime');
 
     if (savedProfile && savedTime) {
       const timeElapsed = Date.now() - Number(savedTime);
@@ -30,58 +30,58 @@ const SignIn = () => {
         // 5 minutes
         setProfile(JSON.parse(savedProfile));
       } else {
-        localStorage.removeItem("draftProfile");
-        localStorage.removeItem("draftProfileTime");
+        localStorage.removeItem('draftProfile');
+        localStorage.removeItem('draftProfileTime');
       }
     }
   }, []);
 
   const [profile, setProfile] = useState({
-    name: "",
-    surname: "",
-    patronymic: "",
+    name: '',
+    surname: '',
+    patronymic: '',
     phone:
-      cookies.get("phone") ||
-      (phoneRegex.test(cookies.get("login")) ? cookies.get("login") : ""),
-    password: "",
-    confirmPassword: "",
-    email: "",
+      cookies.get('phone') ||
+      (phoneRegex.test(cookies.get('login')) ? cookies.get('login') : ''),
+    password: '',
+    confirmPassword: '',
+    email: '',
   });
 
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [validationError, setValidationError] = useState({
-    name: "",
-    surname: "",
-    patronymic: "",
+    name: '',
+    surname: '',
+    patronymic: '',
   });
 
-  const [passwordValidation, setPasswordValidation] = useState("");
+  const [passwordValidation, setPasswordValidation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] =
     useState(false);
 
   const saveDraftToLocalStorage = (data) => {
-    localStorage.setItem("draftProfile", JSON.stringify(data));
-    localStorage.setItem("draftProfileTime", Date.now());
+    localStorage.setItem('draftProfile', JSON.stringify(data));
+    localStorage.setItem('draftProfileTime', Date.now());
   };
 
   const validatePassword = (password) => {
     const errors = [];
     if (password.length < 8) {
-      errors.push("Пароль должен содержать не менее 8 символов.");
+      errors.push('Пароль должен содержать не менее 8 символов.');
     }
     if (!/[A-Z]/.test(password)) {
-      errors.push("Пароль должен содержать хотя бы одну заглавную букву.");
+      errors.push('Пароль должен содержать хотя бы одну заглавную букву.');
     }
     if (!/[a-z]/.test(password)) {
-      errors.push("Пароль должен содержать хотя бы одну строчную букву.");
+      errors.push('Пароль должен содержать хотя бы одну строчную букву.');
     }
     if (!/[0-9]/.test(password)) {
-      errors.push("Пароль должен содержать хотя бы одну цифру.");
+      errors.push('Пароль должен содержать хотя бы одну цифру.');
     }
     if (!/[!@#$%^&*]/.test(password)) {
       errors.push(
-        "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)."
+        'Пароль должен содержать хотя бы один специальный символ (!@#$%^&*).'
       );
     }
     return errors;
@@ -106,46 +106,46 @@ const SignIn = () => {
     }
 
     // Валидация для имени, фамилии и отчества (только кириллица)
-    if (["name", "surname", "patronymic"].includes(name)) {
+    if (['name', 'surname', 'patronymic'].includes(name)) {
       if (!cyrillicRegex.test(value)) {
         setValidationError((prevErrors) => ({
           ...prevErrors,
           [name]:
-            "Поле должно начинаться с заглавной буквы и содержать только кириллицу.",
+            'Поле должно начинаться с заглавной буквы и содержать только кириллицу.',
         }));
       } else {
         setValidationError((prevErrors) => ({
           ...prevErrors,
-          [name]: "",
+          [name]: '',
         }));
       }
     }
 
     // Валидация для телефона (обработать формат +7 и ограничение длины)
-    if (name === "phone") {
+    if (name === 'phone') {
       // Удаляем все нецифровые символы после "+7"
-      const sanitizedValue = value.replace(/\D/g, "");
+      const sanitizedValue = value.replace(/\D/g, '');
 
       setValidationError((prevErrors) => ({
         ...prevErrors,
-        [name]: "",
+        [name]: '',
       }));
-      if (!sanitizedValue.startsWith("7")) {
+      if (!sanitizedValue.startsWith('7')) {
         // Гарантируем, что номер начинается с "+7"
         setProfile((prevProfile) => ({
           ...prevProfile,
-          phone: "+7" + sanitizedValue,
+          phone: '+7' + sanitizedValue,
         }));
       } else if (sanitizedValue.length <= 11) {
         // Ограничиваем длину номера до 11 цифр после "+7"
         setProfile((prevProfile) => ({
           ...prevProfile,
-          phone: "+7" + sanitizedValue.slice(1), // Исключаем начальную "7"
+          phone: '+7' + sanitizedValue.slice(1), // Исключаем начальную "7"
         }));
         if (sanitizedValue.length <= 10) {
           setValidationError((prevErrors) => ({
             ...prevErrors,
-            [name]: "Введите корректный номер телефона",
+            [name]: 'Введите корректный номер телефона',
           }));
         }
       }
@@ -153,24 +153,24 @@ const SignIn = () => {
     }
 
     // Валидация для email
-    if (name === "email") {
+    if (name === 'email') {
       if (value.length <= 100 && !emailRegex.test(value)) {
         setValidationError((prevErrors) => ({
           ...prevErrors,
-          [name]: "Неверный формат email.",
+          [name]: 'Неверный формат email.',
         }));
       } else {
         setValidationError((prevErrors) => ({
           ...prevErrors,
-          [name]: "",
+          [name]: '',
         }));
       }
     }
 
     // Валидация пароля
-    if (name === "password") {
+    if (name === 'password') {
       const passwordErrors = validatePassword(value);
-      setPasswordValidation(passwordErrors.join(" "));
+      setPasswordValidation(passwordErrors.join(' '));
     }
 
     // Обновление состояния профиля
@@ -179,7 +179,6 @@ const SignIn = () => {
     saveDraftToLocalStorage(updatedProfile);
   };
   const validateForm = () => {
-
     // Максимальная длина для каждого поля
     const maxLength = {
       phone: 22,
@@ -192,107 +191,105 @@ const SignIn = () => {
     };
 
     const errors = {
-      name: "",
-      surname: "",
-      patronymic: "",
-      phone: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      name: '',
+      surname: '',
+      patronymic: '',
+      phone: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     };
 
     Object.entries(profile).forEach(([name, value]) => {
       if (value.length > maxLength[name]) {
-        errors[name] = `Длина поля не должна превышать ${maxLength[name]} символов.`;
+        errors[
+          name
+        ] = `Длина поля не должна превышать ${maxLength[name]} символов.`;
         return;
       }
-  
+
       // Валидация для имени, фамилии и отчества (только кириллица)
-      if (["name", "surname", "patronymic"].includes(name)) {
+      if (['name', 'surname', 'patronymic'].includes(name)) {
         if (!cyrillicRegex.test(value)) {
           setValidationError((prevErrors) => ({
             ...prevErrors,
             [name]:
-              "Поле должно начинаться с заглавной буквы и содержать только кириллицу.",
+              'Поле должно начинаться с заглавной буквы и содержать только кириллицу.',
           }));
-        errors[name] = "Поле должно начинаться с заглавной буквы и содержать только кириллицу.";
-
+          errors[name] =
+            'Поле должно начинаться с заглавной буквы и содержать только кириллицу.';
         } else {
           setValidationError((prevErrors) => ({
             ...prevErrors,
-            [name]: "",
+            [name]: '',
           }));
-          errors[name] = "";
-
+          errors[name] = '';
         }
       }
-  
+
       // Валидация для телефона (обработать формат +7 и ограничение длины)
-      if (name === "phone") {
+      if (name === 'phone') {
         // Удаляем все нецифровые символы после "+7"
-        const sanitizedValue = value.replace(/\D/g, "");
-  
+        const sanitizedValue = value.replace(/\D/g, '');
+
         setValidationError((prevErrors) => ({
           ...prevErrors,
-          [name]: "",
+          [name]: '',
         }));
-        if (!sanitizedValue.startsWith("7")) {
+        if (!sanitizedValue.startsWith('7')) {
           // Гарантируем, что номер начинается с "+7"
           setProfile((prevProfile) => ({
             ...prevProfile,
-            phone: "+7" + sanitizedValue,
+            phone: '+7' + sanitizedValue,
           }));
         } else if (sanitizedValue.length <= 11) {
           // Ограничиваем длину номера до 11 цифр после "+7"
           setProfile((prevProfile) => ({
             ...prevProfile,
-            phone: "+7" + sanitizedValue.slice(1), // Исключаем начальную "7"
+            phone: '+7' + sanitizedValue.slice(1), // Исключаем начальную "7"
           }));
           if (sanitizedValue.length <= 10) {
             setValidationError((prevErrors) => ({
               ...prevErrors,
-              [name]: "Введите корректный номер телефона",
+              [name]: 'Введите корректный номер телефона',
             }));
-          errors[name] = "Введите корректный номер телефона";
-
+            errors[name] = 'Введите корректный номер телефона';
           }
         }
       }
-  
+
       // Валидация для email
-      if (name === "email") {
+      if (name === 'email') {
         if (value.length <= 100 && !emailRegex.test(value)) {
           setValidationError((prevErrors) => ({
             ...prevErrors,
-            [name]: "Неверный формат email.",
+            [name]: 'Неверный формат email.',
           }));
-          errors[name] = "Неверный формат email.";
+          errors[name] = 'Неверный формат email.';
         } else {
           setValidationError((prevErrors) => ({
             ...prevErrors,
-            [name]: "",
+            [name]: '',
           }));
-          errors[name] = "";
+          errors[name] = '';
         }
-
       }
-  
+
       // Валидация пароля
       // if (name === "password") {
       //   const passwordErrors = validatePassword(value);
       //   setPasswordValidation(passwordErrors.join(" "));
       // }
-  
+
       // Обновление состояния профиля
       const updatedProfile = { ...profile, [name]: value };
       setProfile(updatedProfile);
       saveDraftToLocalStorage(updatedProfile);
-
     });
-    
+
     return errors;
   };
-  
+
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -303,46 +300,81 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
     const errors = validateForm();
-    console.log(errors)
-    
+    console.log(errors);
+
     // Validate the form
-    if (Object.values(errors).some((msg) => msg !== "")) {
-      setError("Пожалуйста, исправьте ошибки в форме.");
+    if (Object.values(errors).some((msg) => msg !== '')) {
+      setError('Пожалуйста, исправьте ошибки в форме.');
       return;
     }
 
     if (profile.password !== profile.confirmPassword) {
-      setError("Пароли не совпадают");
+      setError('Пароли не совпадают');
       return;
     }
 
     const passwordErrors = validatePassword(profile.password);
     if (passwordErrors.length > 0) {
-      setError(passwordErrors.join(" "));
+      setError(passwordErrors.join(' '));
       return;
     }
 
-    cookies.set("email", profile.email);
+    cookies.set('email', profile.email);
 
-    setError("");
+    setError('');
 
-    setShowConfirmModal(true);
+    try {
+      // Отправляем данные регистрации
+      const response = await axios.post(
+        'https://api.intelectpravo.ru/auth/register',
+        {
+          name: profile.name,
+          surname: profile.surname,
+          patronymic: profile.patronymic,
+          phoneNumber: profile.phone,
+          password: md5(profile.password),
+          email: profile.email,
+        }
+      );
+
+      if (response.status === 200) {
+        // После успешной регистрации сразу отправляем запрос на вход
+        const loginResponse = await axios.post(
+          'https://api.intelectpravo.ru/auth/login',
+          {
+            login: profile.phone,
+          }
+        );
+
+        if (loginResponse.status === 200) {
+          cookies.set('phone', loginResponse.data.phone, { path: '/' });
+          cookies.remove('page');
+          navigate('/loginbypass');
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      if (error.response) {
+        setError(error.response.data.message);
+      } else {
+        setError('Произошла ошибка при регистрации');
+      }
+    }
   };
 
   const handleConfirmModal = async () => {
     try {
       // Check if the phone is already registered
       const loginResponse = await axios.post(
-        "https://api.intelectpravo.ru/auth/login",
+        'https://api.intelectpravo.ru/auth/login',
         {
           login: profile.phone,
         }
       );
 
       if (loginResponse.status === 200) {
-        setError("Пользователь с этим номером телефона уже зарегистрирован");
+        setError('Пользователь с этим номером телефона уже зарегистрирован');
 
         setShowModalEnterToProfile(true);
         setShowConfirmModal(false);
@@ -356,7 +388,7 @@ const SignIn = () => {
         try {
           // Register the new user
           const registerResponse = await axios.post(
-            "https://api.intelectpravo.ru/auth/register",
+            'https://api.intelectpravo.ru/auth/register',
             {
               phone: profile.phone,
               name: profile.name,
@@ -370,17 +402,17 @@ const SignIn = () => {
           if (registerResponse.status === 200) {
             // console.log(registerResponse);
 
-            cookies.remove("page");
+            cookies.remove('page');
             // localStorage.removeItem("draftProfile");
-            cookies.set("phone", profile.phone, { path: "/" });
-            navigate("/signup");
+            cookies.set('phone', profile.phone, { path: '/' });
+            navigate('/signup');
           }
         } catch (registerError) {
-          console.error("Произошла ошибка при регистрации:", registerError);
+          console.error('Произошла ошибка при регистрации:', registerError);
         }
       } else {
         console.error(
-          "Произошла ошибка при проверке номера телефона:",
+          'Произошла ошибка при проверке номера телефона:',
           loginError
         );
       }
@@ -389,7 +421,7 @@ const SignIn = () => {
   };
   const handleConfirmEnterToProfile = () => {
     // "Нет" button click handler - just close the modal
-    navigate("/auth");
+    navigate('/auth');
   };
   const handleCancelConfirmModal = () => {
     // "Нет" button click handler - just close the modal
@@ -469,7 +501,7 @@ const SignIn = () => {
         <div className="relative">
           <Input
             label="Придумайте пароль учётной записи"
-            type={showPassword ? "text" : "password"}
+            type={showPassword ? 'text' : 'password'}
             name="password"
             value={profile.password}
             onChange={handleInput}
@@ -480,7 +512,7 @@ const SignIn = () => {
             type="button"
             onClick={toggleShowPassword}
             className="absolute right-0 top-1/2 transform bg-transparent -translate-y-1/2 text-blue-500 border-0"
-            aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"} // Accessibility
+            aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} // Accessibility
           >
             {showPassword ? (
               // Eye Slash SVG
@@ -532,7 +564,7 @@ const SignIn = () => {
         <div className="relative">
           <Input
             label="Подтвердите пароль"
-            type={showPasswordConfirmation ? "text" : "password"}
+            type={showPasswordConfirmation ? 'text' : 'password'}
             name="confirmPassword"
             value={profile.confirmPassword}
             onChange={handleInput}
@@ -543,7 +575,7 @@ const SignIn = () => {
             type="button"
             onClick={toggleShowPasswordConfirmmation}
             className="absolute right-0 top-1/2 transform bg-transparent -translate-y-1/2 text-blue-500 border-0"
-            aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"} // Accessibility
+            aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} // Accessibility
           >
             {showPasswordConfirmation ? (
               // Eye Slash SVG

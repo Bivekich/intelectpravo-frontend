@@ -1,31 +1,31 @@
-import Cookies from "universal-cookie";
-import { useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
-import AlertModal from "./AlertModal";
+import Cookies from 'universal-cookie';
+import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
+import AlertModal from './AlertModal';
 
 const Header = () => {
   const cookies = new Cookies();
   const navigate = useNavigate();
   const location = useLocation();
   const [confirmed, setConfirmed] = useState(false);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState('');
   const [admin, setAdmin] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true); // состояние для видимости заголовка
   const [showModal, setShowModal] = useState(false); // Modal visibility state
 
   const checkToken = async () => {
-    const token = cookies.get("token");
-    const currentPath = cookies.get("path");
+    const token = cookies.get('token');
+    const currentPath = cookies.get('path');
     if (!token) {
       if (
-        location.pathname !== "/auth" &&
-        location.pathname !== "/signin" &&
-        location.pathname !== "/loginbypass" &&
-        location.pathname !== "/signup"
+        location.pathname !== '/auth' &&
+        location.pathname !== '/signin' &&
+        location.pathname !== '/loginbypass' &&
+        location.pathname !== '/signup'
       ) {
-        navigate("/auth", { replace: true });
+        navigate('/auth', { replace: true });
       }
       if (currentPath && location.pathname != currentPath) {
         navigate(currentPath, { replace: true });
@@ -34,18 +34,18 @@ const Header = () => {
       setHeaderVisible(false); // Скрыть заголовок, если токен отсутствует
     } else {
       if (
-        location.pathname === "/auth" ||
-        location.pathname === "/signin" ||
-        location.pathname === "/loginbypass" ||
-        location.pathname === "/signup"
+        location.pathname === '/auth' ||
+        location.pathname === '/signin' ||
+        location.pathname === '/loginbypass' ||
+        location.pathname === '/signup'
       ) {
-        navigate("/", { replace: true });
+        navigate('/', { replace: true });
       }
       // Если токен есть, загружаем данные профиля
-      const response1 = await axios.get("https://api.ipify.org?format=json");
+      const response1 = await axios.get('https://api.ipify.org?format=json');
       axios({
-        method: "post",
-        url: "https://api.intelectpravo.ru/auth/checkSession",
+        method: 'post',
+        url: 'https://api.intelectpravo.ru/auth/checkSession',
         data: {
           token: token,
           ipAddress: response1.data.ip,
@@ -61,12 +61,12 @@ const Header = () => {
           if (error.status == 404) {
             handleConfirmExitProfile();
           }
-          navigate("/auth", { replace: true });
+          navigate('/auth', { replace: true });
         });
 
       axios({
-        method: "get",
-        url: "https://api.intelectpravo.ru/profile/basic",
+        method: 'get',
+        url: 'https://api.intelectpravo.ru/profile/basic',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,21 +77,21 @@ const Header = () => {
             setAdmin(false);
             if (response.data.admin) {
               setAdmin(true);
-              setStatus("Администратор");
+              setStatus('Администратор');
             } else if (response.data.isConfirmed) {
-              setStatus("Подтвержденная учётная запись");
+              setStatus('Подтвержденная учётная запись');
             } else if (!response.data.isConfirmed) {
-              setStatus("Не подтвержден");
+              setStatus('Не подтвержден');
             }
-            cookies.set("phone", response.data.phoneNumber, { path: "/" });
+            cookies.set('phone', response.data.phoneNumber, { path: '/' });
           }
         })
         .catch((error) => {
           console.error(error);
-          cookies.remove("token", { path: "/" });
-          cookies.remove("email", { path: "/" });
-          cookies.remove("phone", { path: "/" });
-          navigate("/auth", { replace: true });
+          cookies.remove('token', { path: '/' });
+          cookies.remove('email', { path: '/' });
+          cookies.remove('phone', { path: '/' });
+          navigate('/auth', { replace: true });
         });
       setHeaderVisible(true); // Показываем заголовок, если токен есть
     }
@@ -105,10 +105,10 @@ const Header = () => {
       checkToken();
     };
 
-    window.addEventListener("storage", handleCookieChange); // Используем storage event для отслеживания изменений в куках (это может не сработать для локальных изменений)
+    window.addEventListener('storage', handleCookieChange); // Используем storage event для отслеживания изменений в куках (это может не сработать для локальных изменений)
 
     return () => {
-      window.removeEventListener("storage", handleCookieChange);
+      window.removeEventListener('storage', handleCookieChange);
     };
   }, [location.pathname, navigate]);
 
@@ -119,20 +119,20 @@ const Header = () => {
   const handleConfirmExitProfile = () => {
     // "Да" button click handler - navigate to registration
     axios({
-      method: "post",
-      url: "https://api.intelectpravo.ru/auth/logout",
+      method: 'post',
+      url: 'https://api.intelectpravo.ru/auth/logout',
       data: {
-        token: cookies.get("token"),
+        token: cookies.get('token'),
       },
     })
       .then(function (response) {
         // Successful response
         console.log(response);
         if (response.status === 200) {
-          cookies.set("phone", response.data.phone, { path: "/" });
-          cookies.remove("page");
+          cookies.set('phone', response.data.phone, { path: '/' });
+          cookies.remove('page');
 
-          navigate("/loginbypass");
+          navigate('/loginbypass');
         }
       })
       .catch(function (error) {
@@ -140,13 +140,13 @@ const Header = () => {
           // Show modal when the account doesn't exist
           setShowModal(true);
         } else {
-          console.error("Произошла ошибка:", error);
+          console.error('Произошла ошибка:', error);
         }
       });
-    cookies.remove("email", { path: "/" });
-    cookies.remove("phone", { path: "/" });
-    cookies.remove("login", { path: "/" });
-    cookies.remove("token", { path: "/" });
+    cookies.remove('email', { path: '/' });
+    cookies.remove('phone', { path: '/' });
+    cookies.remove('login', { path: '/' });
+    cookies.remove('token', { path: '/' });
     window.location.reload();
     setShowModal(false);
   };
@@ -160,7 +160,14 @@ const Header = () => {
     <>
       <header className="flex flex-col gap-3 mb-3 w-full self-start">
         <div className="flex justify-between gap-3 items-center px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600">
-          <span>IntelectPravo</span>
+          <div className="flex items-center gap-2">
+            <img
+              src="/logo.svg"
+              alt="IntelectPravo Logo"
+              className="h-8 w-auto"
+            />
+            <span className="text-xl font-semibold">IntelectPravo</span>
+          </div>
           <div className="flex flex-row gap-5 items-center">
             <span>{status}</span>
             {headerVisible && (
@@ -216,7 +223,7 @@ const Header = () => {
             )}
           </div>
         ) : (
-          ""
+          ''
         )}
         {/* {confirmed && (
           <div className="px-5 py-3 shadow-md rounded-xl border-2 text-gray-500 dark:text-gray-200 dark:hover:text-gray-200 transition-all hover:text-gray-600 hover:scale-105">
