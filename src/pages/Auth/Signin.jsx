@@ -623,6 +623,30 @@ const SignIn = () => {
         </div>
 
         {error && <span className="text-red-600">{error}</span>}
+        <div className="flex flex-col gap-2 text-sm text-gray-600">
+          <p>
+            Нажимая кнопку "Создать учётную запись", вы соглашаетесь с условиями
+            следующих документов:
+          </p>
+          <div className="flex flex-col gap-1 ml-4">
+            <a
+              href="/documents/public-offer.pdf"
+              target="_blank"
+              className="text-blue-600 hover:underline"
+              rel="noopener noreferrer"
+            >
+              • Публичная оферта
+            </a>
+            <a
+              href="/documents/electronic-signature.pdf"
+              target="_blank"
+              className="text-blue-600 hover:underline"
+              rel="noopener noreferrer"
+            >
+              • Соглашение об использовании простой электронной подписи
+            </a>
+          </div>
+        </div>
         <AcceptAll name="accept" />
         <button
           type="submit"
